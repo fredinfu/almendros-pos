@@ -1,0 +1,331 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">CATÁLOGO</div>
+    <h1>Productos y presentaciones</h1>
+    <p>
+      Elige Grano o Molido al vender: comparten precio y existencias. Agrega tamaños solo si los
+      necesitas.
+    </p>
+  </div>
+  <button mat-flat-button color="primary" (click)="newProduct()">Nuevo producto</button>
+</div>
+@if (editor()) {
+  <div class="two-columns">
+    <section class="panel">
+      <h2>{{ productId() ? 'Editar producto' : 'Crear producto' }}</h2>
+      <form [formGroup]="productForm" (ngSubmit)="saveProduct()" class="form-grid">
+        <mat-form-field class="wide"
+          ><mat-label>Nombre del producto</mat-label
+          ><input matInput formControlName="name" maxlength="200"
+        /></mat-form-field>
+        <mat-form-field
+          ><mat-label>Marca</mat-label
+          ><mat-select formControlName="brandId">
+            @for (brand of store.data().brands; track brand.id) {
+              <mat-option [value]="brand.id">{{ brand.name }}</mat-option>
+            }
+          </mat-select></mat-form-field
+        >
+        <details class="wide">
+          <summary>Categoría personalizada (opcional)</summary>
+          <mat-form-field
+            ><mat-label>Categoría</mat-label
+            ><mat-select formControlName="categoryId">
+              @for (category of store.data().categories; track category.id) {
+                <mat-option [value]="category.id">{{ category.name }}</mat-option>
+              }
+            </mat-select></mat-form-field
+          >
+        </details>
+        <mat-form-field
+          ><mat-label>Tipo</mat-label
+          ><mat-select formControlName="productType" (selectionChange)="typeChanged($event.value)"
+            ><mat-option value="packaged_coffee">Café empacado</mat-option
+            ><mat-option value="coffee_pod">Coffee Pod</mat-option
+            ><mat-option value="beverage">Bebida</mat-option
+            ><mat-option value="merchandise">Mercadería</mat-option
+            ><mat-option value="other">Otro</mat-option></mat-select
+          ></mat-form-field
+        >
+        <mat-checkbox formControlName="isActive">Producto activo</mat-checkbox>
+        @if (!productId()) {
+          <mat-form-field
+            ><mat-label>Precio de venta L</mat-label
+            ><input matInput formControlName="price" inputmode="decimal" /><mat-hint
+              >Puede configurarse al vender</mat-hint
+            ></mat-form-field
+          >
+          <details class="wide">
+            <summary>Tamaño o formato (opcional)</summary>
+            <mat-form-field
+              ><mat-label>Presentación comercial</mat-label
+              ><input matInput formControlName="presentation" placeholder="250 g, ½ lb…"
+            /></mat-form-field>
+            @if (
+              productForm.controls.productType.value === 'coffee_pod' ||
+              productForm.controls.productType.value === 'merchandise'
+            ) {
+              <mat-form-field
+                ><mat-label>Unidades del pack</mat-label
+                ><input matInput formControlName="packQuantity" inputmode="numeric"
+              /></mat-form-field>
+            }
+          </details>
+        }
+        @if (productForm.controls.productType.value === 'packaged_coffee') {
+          <div class="wide">
+            <p>Preparaciones disponibles · Comparten precio y existencias</p>
+            <mat-checkbox formControlName="molido">Molido</mat-checkbox
+            ><mat-checkbox formControlName="grano">Grano</mat-checkbox>
+          </div>
+        }
+        <mat-form-field class="wide"
+          ><mat-label>Descripción</mat-label
+          ><textarea matInput formControlName="description" maxlength="2000" rows="3"></textarea>
+        </mat-form-field>
+        <div class="actions wide">
+          <button mat-flat-button color="primary" [disabled]="store.busy() || productForm.invalid">
+            Guardar producto</button
+          ><button type="button" mat-button (click)="editor.set(false)">Cerrar editor</button>
+        </div>
+      </form>
+    </section>
+    @if (productId()) {
+      <section class="panel">
+        <h2>
+          {{ variantId() ? 'Editar presentación y precio' : 'Agregar presentación y precio' }}
+        </h2>
+        @if (productId()) {
+          <p class="subtle">
+            {{ productForm.controls.name.value }} · Si vendes un solo tamaño, utiliza «Única» o el
+            tamaño de tu bolsa.
+          </p>
+          <form [formGroup]="variantForm" (ngSubmit)="saveVariant()" class="form-grid">
+            <mat-form-field
+              ><mat-label>Presentación</mat-label
+              ><input matInput formControlName="name" placeholder="Única / 250 g / ½ lb"
+            /></mat-form-field>
+            <mat-form-field
+              ><mat-label>Precio L</mat-label
+              ><input matInput formControlName="price" inputmode="decimal" /><mat-hint
+                >Necesario para vender</mat-hint
+              ></mat-form-field
+            >
+            <div class="wide sale-options">
+              Para cafés empacados, Grano y Molido se eligen en el carrito. No necesitas crearlos
+              como presentaciones separadas.
+            </div>
+            <mat-checkbox formControlName="isActive" class="wide">Presentación activa</mat-checkbox>
+            <details class="wide extra-options">
+              <summary>Opciones adicionales: código, costo y otros detalles</summary>
+              <div class="form-grid">
+                <mat-form-field
+                  ><mat-label>Código del producto (opcional)</mat-label
+                  ><input
+                    matInput
+                    formControlName="sku"
+                    placeholder="Puedes dejarlo vacío"
+                  /><mat-hint>No necesitas códigos ni lector de barras.</mat-hint></mat-form-field
+                >
+                <mat-form-field
+                  ><mat-label>Costo unitario L (opcional)</mat-label
+                  ><input matInput formControlName="cost" inputmode="decimal" /><mat-hint
+                    >Puedes vender sin definirlo.</mat-hint
+                  ></mat-form-field
+                >
+                <mat-form-field
+                  ><mat-label>Precio regular L</mat-label
+                  ><input matInput formControlName="regularPrice" inputmode="decimal"
+                /></mat-form-field>
+                <mat-form-field
+                  ><mat-label>Alerta de stock bajo</mat-label
+                  ><input
+                    matInput
+                    type="number"
+                    formControlName="lowStockThreshold"
+                    min="0"
+                    step="1"
+                /></mat-form-field>
+                <mat-form-field
+                  ><mat-label>Contenido del paquete (unidades)</mat-label
+                  ><input matInput formControlName="packUnits" inputmode="numeric"
+                /></mat-form-field>
+                <mat-form-field
+                  ><mat-label>Proceso</mat-label><input matInput formControlName="process"
+                /></mat-form-field>
+                <mat-form-field
+                  ><mat-label>Peso / volumen</mat-label
+                  ><input matInput formControlName="weightValue" inputmode="decimal"
+                /></mat-form-field>
+                <mat-form-field
+                  ><mat-label>Unidad</mat-label
+                  ><mat-select formControlName="weightUnit"
+                    ><mat-option value="g">g</mat-option><mat-option value="lb">lb</mat-option
+                    ><mat-option value="ml">ml</mat-option></mat-select
+                  ></mat-form-field
+                >
+                <mat-checkbox formControlName="trackInventory">Controlar inventario</mat-checkbox>
+              </div>
+            </details>
+            <p class="wide subtle">
+              El costo puede quedar pendiente. Las ventas funcionan normalmente y el reporte
+              indicará que la utilidad es parcial.
+            </p>
+            <div class="actions wide">
+              <button
+                mat-flat-button
+                color="primary"
+                [disabled]="store.busy() || variantForm.invalid"
+              >
+                Guardar presentación</button
+              ><button type="button" mat-button (click)="editVariant()">Agregar otro tamaño</button>
+            </div>
+          </form>
+        } @else {
+          <p>
+            Primero guarda el nombre y los datos del producto. Después podrás indicar su
+            presentación y precio.
+          </p>
+        }
+      </section>
+    }
+  </div>
+}
+<section class="panel">
+  <div class="section-heading">
+    <mat-form-field class="search"
+      ><mat-label>Buscar producto o marca</mat-label
+      ><input
+        matInput
+        [value]="search()"
+        (input)="search.set($any($event.target).value)" /></mat-form-field
+    ><mat-checkbox [checked]="showInactive()" (change)="setInactive($event.checked)"
+      >Mostrar inactivos</mat-checkbox
+    >
+  </div>
+
+  <div class="categories">
+    <button mat-button (click)="setCategory('')" [class.selected]="!category()">Todos</button>
+    @for (cat of store.categories(); track cat.id) {
+      <button mat-button (click)="setCategory(cat.id)" [class.selected]="category() === cat.id">
+        {{ cat.name }}
+      </button>
+    }
+  </div>
+  <div class="catalog-groups">
+    @for (p of groups(); track p.id) {
+      <article class="product-group">
+        <div class="product-summary">
+          <div>
+            <h2>{{ p.name }}</h2>
+            <small>{{ p.brand.name }} · {{ p.category.name }}</small>
+            <p>
+              @for (v of p.variants; track v.id) {
+                @if (v.isActive && v.name !== 'Única') {
+                  <span>{{ v.name }} · </span>
+                }
+              }
+            </p>
+            <small>{{ store.options(p.id).join(' · ') }}</small>
+          </div>
+          <strong>{{ priceRange(p.id) }}</strong>
+          <div class="actions">
+            <button
+              class="status-switch"
+              role="switch"
+              [attr.aria-checked]="p.isActive"
+              [attr.aria-label]="'Estado producto ' + p.name"
+              [class.on]="p.isActive"
+              [disabled]="store.busy()"
+              (click)="toggleProduct(p)"
+            >
+              <span class="switch-track"><span></span></span
+              >{{ p.isActive ? 'Activo' : 'Inactivo' }}</button
+            ><button mat-button (click)="editProduct(p)">Editar producto</button
+            ><button
+              mat-button
+              class="delete-action"
+              [disabled]="store.busy()"
+              (click)="deleteProduct(p)"
+            >
+              Eliminar producto
+            </button>
+          </div>
+        </div>
+        <details>
+          <summary>Presentaciones y opciones ({{ p.variants.length }})</summary>
+          <button mat-button (click)="editVariant(undefined, p.id)">
+            Agregar presentación / pack
+          </button>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Presentación</th>
+                  <th>Precio</th>
+                  <th>Costo</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (v of p.variants; track v.id) {
+                  <tr>
+                    <td>
+                      {{ v.name }}
+                      @if (v.packUnits) {
+                        <small>{{ v.packUnits }} unidades por paquete</small>
+                      }
+                      @if (legacy(v)) {
+                        <button mat-button (click)="correctLegacy(v)">Revisar presentación</button>
+                      }
+                    </td>
+                    <td>{{ store.money(v.priceMinor) }}</td>
+                    <td>
+                      {{
+                        v.unitCostMinor === undefined
+                          ? 'Pendiente (opcional)'
+                          : store.money(v.unitCostMinor)
+                      }}
+                    </td>
+                    <td>
+                      <button
+                        class="status-switch"
+                        role="switch"
+                        [attr.aria-checked]="v.isActive"
+                        [attr.aria-label]="'Estado ' + v.label"
+                        [class.on]="v.isActive"
+                        [disabled]="store.busy()"
+                        (click)="toggleActive(v)"
+                      >
+                        <span class="switch-track"><span></span></span
+                        >{{ v.isActive ? 'Activo' : 'Inactivo' }}
+                      </button>
+                    </td>
+                    <td>
+                      <button mat-button (click)="editVariant(v)">Editar</button
+                      ><button
+                        mat-button
+                        class="delete-action"
+                        [disabled]="store.busy()"
+                        (click)="deletePresentation(v)"
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="subtle">
+            Los paquetes mantienen stock físico propio: no registres sus unidades también como
+            sueltas.
+          </p>
+        </details>
+      </article>
+    } @empty {
+      <p>No hay productos con estos filtros.</p>
+    }
+  </div>
+</section>

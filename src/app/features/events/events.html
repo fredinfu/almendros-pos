@@ -1,0 +1,297 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">FERIAS Y STANDS</div>
+    <h1>Eventos</h1>
+    <p>Prepara existencias, registra gastos y concilia al terminar.</p>
+  </div>
+  <button mat-flat-button color="primary" (click)="creating.set(!creating())">Nuevo evento</button>
+</div>
+@if (creating()) {
+  <section class="panel">
+    <h2>Crear evento</h2>
+    <form [formGroup]="form" (ngSubmit)="create()" class="form-grid three">
+      <mat-form-field
+        ><mat-label>Nombre del evento</mat-label
+        ><input matInput formControlName="name" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Ubicación</mat-label><input matInput formControlName="venue" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Ciudad</mat-label><input matInput formControlName="city" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Fecha</mat-label
+        ><input matInput type="date" formControlName="startsAt" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Efectivo inicial L</mat-label
+        ><input matInput formControlName="openingCash" inputmode="decimal" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Notas</mat-label><input matInput formControlName="notes"
+      /></mat-form-field>
+      <div class="actions wide">
+        <button mat-flat-button color="primary" [disabled]="store.busy() || form.invalid">
+          Crear borrador</button
+        ><button mat-button type="button" (click)="creating.set(false)">Cancelar</button>
+      </div>
+    </form>
+  </section>
+}
+<section class="panel">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (event of store.data().events; track event.id) {
+          <tr [class.selected]="event.id === store.eventId()">
+            <td>
+              <strong>{{ event.name }}</strong
+              ><small>{{ event.venue }} {{ event.city }}</small>
+            </td>
+            <td>{{ store.date(event.startsAt) }}</td>
+            <td>
+              <span class="badge">{{ statusLabels[event.status] }}</span>
+            </td>
+            <td><button mat-button (click)="store.eventId.set(event.id)">Seleccionar</button></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="empty">Crea tu primer evento para preparar el inventario.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+@if (store.event(); as event) {
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">EVENTO SELECCIONADO</div>
+        <h2>{{ event.name }}</h2>
+      </div>
+      <div class="actions">
+        @if (event.status === 'draft') {
+          <button mat-flat-button color="primary" [disabled]="store.busy()" (click)="open()">
+            Abrir evento
+          </button>
+        }
+        @if (event.status === 'open') {
+          <a mat-flat-button color="primary" routerLink="/pos">Vender</a
+          ><button mat-stroked-button (click)="prepareClose()">Preparar cierre</button>
+        }
+        @if (event.status === 'closed') {
+          <button
+            mat-flat-button
+            color="primary"
+            (click)="store.exportBackup()"
+            [disabled]="store.busy()"
+          >
+            Descargar respaldo del cierre
+          </button>
+        }
+      </div>
+    </div>
+    <div class="metrics compact">
+      <div>
+        <span>Ventas netas</span><strong>{{ store.money(store.report().net) }}</strong>
+      </div>
+      <div>
+        <span>Gastos</span><strong>{{ store.money(store.report().expenses) }}</strong>
+      </div>
+      <div>
+        <span>Muestras / mermas</span
+        ><strong>{{ store.report().samples }} / {{ store.report().waste }}</strong>
+      </div>
+      <div>
+        <span>Efectivo esperado</span
+        ><strong>{{ store.money(store.report().expectedCash) }}</strong>
+      </div>
+    </div>
+    @if (event.status !== 'closed') {
+      <h3>Transferir desde Almacén General</h3>
+      <form [formGroup]="transfer" (ngSubmit)="transferStock()" class="inline-form">
+        <mat-form-field class="grow"
+          ><mat-label>Producto para transferir</mat-label
+          ><mat-select formControlName="variantId">
+            @for (v of store.variants(); track v.id) {
+              @if (v.trackInventory && v.isActive && v.product.isActive) {
+                <mat-option [value]="v.id"
+                  >{{ v.label }} · General: {{ store.stock(v.id, store.general()!.id) }} · Evento:
+                  {{ store.stock(v.id) }}</mat-option
+                >
+              }
+            }
+          </mat-select></mat-form-field
+        ><mat-form-field
+          ><mat-label>Cantidad a transferir</mat-label
+          ><input
+            matInput
+            formControlName="quantity"
+            type="number"
+            min="1"
+            step="1" /></mat-form-field
+        ><button mat-flat-button color="primary" [disabled]="store.busy() || transfer.invalid">
+          Transferir
+        </button>
+      </form>
+    }
+  </section>
+  @if ((event.status !== 'closed' || expenseId()) && !closing()) {
+    <section class="panel">
+      <h2>{{ expenseId() ? 'Corregir gasto' : 'Registrar gasto' }}</h2>
+      <form [formGroup]="expense" (ngSubmit)="saveExpense()" class="form-grid four">
+        <mat-form-field
+          ><mat-label>Categoría del gasto</mat-label
+          ><mat-select formControlName="category"
+            ><mat-option value="stand">Stand</mat-option
+            ><mat-option value="transport">Transporte</mat-option
+            ><mat-option value="supplies">Insumos</mat-option
+            ><mat-option value="food">Alimentación</mat-option
+            ><mat-option value="other">Otro</mat-option></mat-select
+          ></mat-form-field
+        ><mat-form-field
+          ><mat-label>Descripción del gasto</mat-label
+          ><input matInput formControlName="description" /></mat-form-field
+        ><mat-form-field
+          ><mat-label>Importe L</mat-label
+          ><input matInput formControlName="amount" inputmode="decimal" /></mat-form-field
+        ><mat-form-field
+          ><mat-label>Pago del gasto</mat-label
+          ><mat-select formControlName="paymentMethod"
+            ><mat-option value="cash">Efectivo de caja</mat-option
+            ><mat-option value="bac">BAC manual</mat-option
+            ><mat-option value="kash">Kash manual</mat-option
+            ><mat-option value="other">Otro / fuera de caja</mat-option></mat-select
+          ></mat-form-field
+        >
+        <div class="wide">
+          <button mat-flat-button color="primary" [disabled]="store.busy() || expense.invalid">
+            {{ expenseId() ? 'Guardar corrección' : 'Guardar gasto' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+  @if (closing()) {
+    <section class="panel closing">
+      <h2>Conteo físico y conciliación</h2>
+      <p>
+        Cuenta las unidades reales. Las diferencias requieren un motivo y generan movimientos de
+        ajuste. Se devolverán al almacén las unidades contadas.
+      </p>
+      <p>
+        {{ store.report().transactions }} transacciones · {{ store.report().units }} unidades
+        vendidas · Reembolsos pendientes: {{ store.money(store.report().pendingRefunds) }}
+      </p>
+      <form [formGroup]="counts">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Esperado</th>
+                <th>Conteo / devolución</th>
+                <th>Diferencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of store.variants(); track v.id) {
+                @if (v.trackInventory) {
+                  <tr>
+                    <td>{{ v.label }}</td>
+                    <td>{{ store.stock(v.id) }}</td>
+                    <td>
+                      <input
+                        class="count-input"
+                        type="number"
+                        min="0"
+                        step="1"
+                        [attr.aria-label]="'Conteo ' + v.sku"
+                        [formControlName]="v.id"
+                      />
+                    </td>
+                    <td>{{ difference(v.id) ?? 'Pendiente' }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </form>
+      <form [formGroup]="closeForm" (ngSubmit)="close()">
+        <div class="form-grid">
+          <mat-form-field
+            ><mat-label>Motivo de las diferencias</mat-label
+            ><textarea matInput formControlName="reason"></textarea></mat-form-field
+          ><mat-form-field
+            ><mat-label>Efectivo contado L (opcional)</mat-label
+            ><input matInput formControlName="cash" inputmode="decimal"
+          /></mat-form-field>
+        </div>
+        <div class="actions">
+          <button mat-flat-button color="primary" [disabled]="store.busy() || counts.invalid">
+            Confirmar cierre y devolución</button
+          ><button mat-button type="button" (click)="closing.set(false)">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  }
+  <section class="panel">
+    <h2>Gastos registrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th>Categoría</th>
+          <th>Método</th>
+          <th>Importe</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of expenses(); track e.id) {
+          <tr>
+            <td>
+              {{ e.description }}
+              @if (e.voidedAt) {
+                <small>Anulado</small>
+              }
+              @if (e.correctionHistory?.length) {
+                <details>
+                  <summary>Historial de correcciones</summary>
+                  @for (h of e.correctionHistory; track $index) {
+                    <p>
+                      {{ store.date(h.at) }} · {{ h.reason }} · Antes: {{ h.description }}
+                      {{ store.money(h.amountMinor) }}
+                      {{ paymentLabels[h.paymentMethod || 'other'] }}
+                    </p>
+                  }
+                </details>
+              }
+            </td>
+            <td>{{ expenseLabels[e.category] }}</td>
+            <td>{{ paymentLabels[e.paymentMethod || 'other'] }}</td>
+            <td>{{ store.money(e.amountMinor) }}</td>
+            <td>
+              @if (!e.voidedAt) {
+                <button mat-button (click)="editExpense(e.id)">Editar</button
+                ><button mat-button [disabled]="store.busy()" (click)="voidExpense(e.id)">
+                  Anular
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="empty">No hay gastos registrados.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}

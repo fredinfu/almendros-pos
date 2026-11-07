@@ -1,0 +1,220 @@
+.pos-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+.search {
+  width: 100%;
+}
+.categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.categories .selected {
+  background: #49372d;
+  color: white;
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  gap: 12px;
+}
+.product-tile {
+  text-align: left;
+  background: white;
+  border: 1px solid #d7d1c7;
+  border-radius: 4px;
+  padding: 16px;
+  min-height: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 2px #00000008;
+}
+.product-tile:hover:enabled {
+  border-color: #806342;
+  background: #fffdf8;
+}
+.product-tile:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+.product-tile strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+.brand {
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: #71553a;
+}
+.brand.after {
+  color: #3e665d;
+}
+.variant {
+  font-size: 13px;
+  color: #655e55;
+}
+.tile-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  align-items: end;
+}
+.tile-bottom small {
+  white-space: nowrap;
+}
+.cart-panel {
+  position: sticky;
+  top: 86px;
+  background: white;
+  border: 1px solid #d7d1c7;
+  border-top: 3px solid #806342;
+  border-radius: 4px;
+  padding: 20px;
+}
+.cart-panel h2 {
+  margin: 0;
+}
+.cart-line {
+  border-bottom: 1px solid #e9e5df;
+  padding: 16px 0;
+}
+.cart-line strong {
+  font-size: 14px;
+}
+.line-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.line-controls button {
+  min-width: 38px;
+  padding: 0 8px;
+}
+.line-controls input {
+  width: 46px;
+  min-height: 40px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font: inherit;
+}
+.line-controls span {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.grind {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin-top: 10px;
+}
+.grind select {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+.empty-cart {
+  text-align: center;
+  padding: 40px 8px;
+  color: #72695e;
+}
+.empty-cart p {
+  font-size: 13px;
+}
+.total {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #ddd;
+  padding: 18px 0;
+  font-size: 21px;
+}
+.checkout {
+  width: 100%;
+  min-height: 52px;
+}
+.receipt {
+  padding: 16px 20px;
+  background: #e8f0e5;
+  color: #285030;
+  margin-bottom: 20px;
+  border-left: 4px solid #517553;
+}
+.manual-note {
+  font-size: 13px;
+  background: #faf1df;
+  padding: 10px;
+}
+@media (max-width: 1050px) {
+  .pos-layout {
+    grid-template-columns: minmax(0, 1fr) 310px;
+    gap: 16px;
+  }
+  .cart-panel {
+    padding: 16px;
+  }
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .pos-layout {
+    grid-template-columns: 1fr;
+  }
+  .cart-panel {
+    position: static;
+  }
+  .product-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.product-tile {
+  min-height: 140px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.product-grid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.product-grid.compact .product-tile {
+  min-height: 110px;
+  padding: 12px;
+}
+.selection-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0006;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.selection-panel {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+}
+.selection-panel label {
+  display: block;
+  margin: 16px 0;
+}
+.selection-panel input,
+.selection-panel select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+}
+
+.payment-evidence { display:block; width:100%; max-height:240px; object-fit:contain; border:1px solid #d9d1c8; margin:12px 0; }

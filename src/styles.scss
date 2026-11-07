@@ -1,0 +1,343 @@
+@use '@angular/material' as mat;
+@include mat.core();
+$theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: mat.m2-define-palette(mat.$m2-brown-palette, 700),
+      accent: mat.m2-define-palette(mat.$m2-amber-palette, 700),
+      warn: mat.m2-define-palette(mat.$m2-red-palette),
+    ),
+    typography: mat.m2-define-typography-config(
+        $font-family: 'Arial, Helvetica, sans-serif',
+      ),
+    density: 0,
+  )
+);
+@include mat.core-theme($theme);
+@include mat.button-theme($theme);
+@include mat.form-field-theme($theme);
+@include mat.input-theme($theme);
+@include mat.select-theme($theme);
+@include mat.checkbox-theme($theme);
+@include mat.option-theme($theme);
+@include mat.optgroup-theme($theme);
+:root {
+  color-scheme: light;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #302c26;
+  background: #f6f4ef;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  margin: 5px 0 10px;
+}
+h2 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 18px;
+}
+h3 {
+  font-size: 16px;
+  margin: 24px 0 16px;
+}
+p {
+  line-height: 1.6;
+}
+a {
+  color: #654b34;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 3px solid #a8792a;
+  outline-offset: 3px;
+}
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 4px 0 26px;
+}
+.page-heading p {
+  margin: 0;
+  font-size: 14px;
+  color: #72695e;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #806342;
+}
+.panel {
+  background: white;
+  border: 1px solid #e2ddd4;
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px #00000005;
+}
+.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.two-columns > * {
+  min-width: 0;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.section-heading h2 {
+  margin: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  align-items: start;
+}
+.form-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.form-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.wide {
+  grid-column: 1 / -1;
+}
+.inline-form {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.inline-form .grow {
+  flex: 1;
+  min-width: 220px;
+}
+.full-width {
+  width: 100%;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: #ded8ce;
+  border: 1px solid #ded8ce;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 20px 0 24px;
+}
+.metrics > div {
+  background: white;
+  padding: 22px 20px;
+}
+.metrics span {
+  font-size: 12px;
+  color: #72695e;
+  display: block;
+  margin-bottom: 12px;
+}
+.metrics strong {
+  font-size: 25px;
+  font-weight: 600;
+}
+.metrics.compact {
+  border: none;
+}
+.metrics.compact > div {
+  padding: 12px;
+}
+.metrics.compact strong {
+  font-size: 20px;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+th {
+  text-align: left;
+  background: #f8f7f4;
+  color: #6d6357;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  padding: 13px 12px;
+}
+td {
+  border-bottom: 1px solid #eeeae4;
+  padding: 14px 12px;
+  line-height: 1.45;
+}
+td small {
+  display: block;
+  color: #847a6d;
+  margin-top: 4px;
+  font-size: 11px;
+}
+.compact-tables td {
+  padding: 8px 12px;
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  background: #edf2e9;
+  color: #42623f;
+  border-radius: 3px;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+.badge.low {
+  background: #faf0dc;
+  color: #7b5921;
+}
+.badge.muted {
+  background: #eee;
+  color: #666;
+}
+.empty {
+  color: #8a8175;
+  text-align: center;
+  padding: 32px 12px;
+}
+.alert {
+  padding: 13px 16px;
+  background: #f3f1ec;
+  font-size: 14px;
+  line-height: 1.6;
+  border-radius: 3px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+.alert.warning {
+  background: #fbf1dc;
+  color: #725317;
+}
+.alert.error {
+  background: #fae7e1;
+  color: #8e281b;
+}
+.alert.success {
+  background: #eaf0e5;
+  color: #325830;
+}
+.summary-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  font-size: 14px;
+  margin: 22px 0;
+}
+.summary-list dt {
+  color: #6d6357;
+}
+.summary-list dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+.subtle {
+  font-size: 12px;
+  color: #81776a;
+}
+.mat-mdc-button-base {
+  border-radius: 4px !important;
+}
+.mat-mdc-form-field {
+  width: 100%;
+}
+.mat-mdc-raised-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button {
+  min-height: 44px !important;
+}
+@media (max-width: 1100px) {
+  .form-grid.four {
+    grid-template-columns: 1fr 1fr;
+  }
+  .metrics strong {
+    font-size: 21px;
+  }
+}
+@media (max-width: 850px) {
+  .two-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .form-grid.three {
+    grid-template-columns: 1fr 1fr;
+  }
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .page-heading {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 500px) {
+  h1 {
+    font-size: 24px;
+  }
+  .panel {
+    padding: 16px;
+  }
+  .form-grid,
+  .form-grid.three,
+  .form-grid.four {
+    grid-template-columns: 1fr;
+  }
+  .page-heading {
+    flex-direction: column;
+  }
+  .metrics > div {
+    padding: 16px;
+  }
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  td,
+  th {
+    padding: 10px 8px;
+  }
+  .summary-list {
+    font-size: 13px;
+  }
+}

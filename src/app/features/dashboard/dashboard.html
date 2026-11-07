@@ -1,0 +1,115 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">ALMENDROS COFFEE CO. + AFTER COFFEE</div>
+    <h1>Resumen de operación</h1>
+    <p>Todo listo para tu próximo evento.</p>
+  </div>
+  <a mat-flat-button color="primary" routerLink="/pos">Abrir punto de venta</a>
+</div>
+@if (store.backupDue()) {
+  <div class="alert warning">
+    Tus datos viven en este dispositivo. Es momento de descargar un respaldo.<button
+      mat-button
+      (click)="store.exportBackup()"
+      [disabled]="store.busy()"
+    >
+      Crear respaldo
+    </button>
+  </div>
+}
+@if (store.event(); as event) {
+  <section class="panel event-banner">
+    <div>
+      <span class="eyebrow">EVENTO SELECCIONADO · {{ statusLabels[event.status] }}</span>
+      <h2>{{ event.name }}</h2>
+      <p>{{ event.venue || 'Ubicación por definir' }}{{ event.city ? ' · ' + event.city : '' }}</p>
+    </div>
+    <a mat-stroked-button routerLink="/events">Administrar evento</a>
+  </section>
+  <div class="metrics">
+    <div>
+      <span>Ventas netas</span><strong>{{ store.money(store.report().net) }}</strong>
+    </div>
+    <div>
+      <span>Transacciones</span><strong>{{ store.report().transactions }}</strong>
+    </div>
+    <div>
+      <span>Unidades vendidas</span><strong>{{ store.report().units }}</strong>
+    </div>
+    <div>
+      <span>Gastos del evento</span><strong>{{ store.money(store.report().expenses) }}</strong>
+    </div>
+  </div>
+  <div class="two-columns">
+    <section class="panel">
+      <h2>Productos más vendidos</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Unidades</th>
+              <th>Venta neta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of store.report().byProduct.slice(0, 5); track row.name) {
+              <tr>
+                <td>{{ row.name }}</td>
+                <td>{{ row.quantity }}</td>
+                <td>{{ store.money(row.totalMinor) }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="empty">Las primeras ventas aparecerán aquí.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Control del evento</h2>
+      <dl class="summary-list">
+        <dt>Muestras</dt>
+        <dd>{{ store.report().samples }} unidades</dd>
+        <dt>Mermas</dt>
+        <dd>{{ store.report().waste }} unidades</dd>
+        <dt>Ticket promedio</dt>
+        <dd>{{ store.money(store.report().average) }}</dd>
+        <dt>Costos</dt>
+        <dd>
+          {{
+            store.report().costsKnown ? 'Configurados para las ventas' : 'Información incompleta'
+          }}
+        </dd>
+      </dl>
+      <a mat-button routerLink="/reports">Ver reporte completo →</a>
+    </section>
+  </div>
+} @else {
+  <section class="panel welcome">
+    <span class="eyebrow">EMPEZAR A VENDER</span>
+    <h2>Empieza con una venta rápida.</h2>
+    <p>
+      Elige un producto y cobra. Si falta su precio, podrás configurarlo ahí mismo. El evento es
+      opcional.
+    </p>
+    <ol>
+      <li>Revisa productos, precios y presentaciones.</li>
+      <li>Puedes vender con inventario sin registrar y conciliarlo después.</li>
+      <li>Un conteo verificado en cero sí impide vender hasta reponer stock.</li>
+    </ol>
+    <div class="actions">
+      <a mat-flat-button color="primary" routerLink="/pos">Venta rápida</a
+      ><a mat-stroked-button routerLink="/events">Crear evento</a>
+    </div>
+  </section>
+}
+<section class="quick-links">
+  <a routerLink="/catalog"
+    ><strong>{{ store.data().products.length }} productos</strong><span>Revisar catálogo →</span></a
+  ><a routerLink="/inventory"
+    ><strong>Almacén General</strong><span>Entradas y movimientos →</span></a
+  ><a routerLink="/settings"><strong>Respaldo local</strong><span>Exportar y restaurar →</span></a>
+</section>

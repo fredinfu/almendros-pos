@@ -1,0 +1,44 @@
+.event-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-left: 4px solid #96754b;
+}
+.welcome {
+  max-width: 750px;
+}
+.welcome p {
+  max-width: 570px;
+}
+.welcome li {
+  padding: 6px 0;
+}
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+.quick-links a {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 20px;
+  border-top: 2px solid #b9a88e;
+  background: white;
+  color: #49372d;
+  text-decoration: none;
+}
+.quick-links span {
+  font-size: 13px;
+}
+@media (max-width: 650px) {
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+  .event-banner {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+}

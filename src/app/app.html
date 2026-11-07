@@ -1,0 +1,79 @@
+<a class="skip-link" href="#main" (click)="$event.preventDefault(); mainContent.focus()"
+  >Saltar al contenido</a
+>
+<header class="toolbar">
+  <button mat-button class="menu-button" (click)="menu.set(!menu())" aria-label="Abrir navegación">
+    ☰
+  </button>
+  <a routerLink="/dashboard" class="wordmark">ALMENDROS <span>POS</span></a>
+  <div class="toolbar-context">
+    <label for="active-event">Evento</label
+    ><select
+      id="active-event"
+      [value]="store.eventId()"
+      (change)="store.selectEvent($any($event.target).value)"
+    >
+      <option value="" [selected]="!store.eventId()">Venta rápida · Sin evento</option>
+      @for (event of store.data().events; track event.id) {
+        <option [value]="event.id" [selected]="event.id === store.eventId()">
+          {{ event.name }} · {{ statusLabels[event.status] }}
+        </option>
+      }
+    </select>
+  </div>
+  <span class="connection" [class.offline]="!store.online()">{{
+    store.ready() ? 'Datos locales · Sin sincronización' : 'Abriendo almacenamiento…'
+  }}</span>
+</header>
+<div class="app-layout" [class.menu-open]="menu()">
+  <aside>
+    <div class="sidebar-heading">OPERACIÓN</div>
+    <nav aria-label="Navegación principal">
+      @for (link of links; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active" (click)="menu.set(false)"
+          ><span>{{ link.code }}</span
+          >{{ link.name }}</a
+        >
+      }
+    </nav>
+    <div class="sidebar-footer">
+      Almendros Coffee Co.<br />AFTER Coffee
+      <hr />
+      Datos en este dispositivo<br /><small>Sin sincronización entre equipos</small>
+    </div>
+  </aside>
+  <main
+    id="main"
+    #mainContent
+    tabindex="-1"
+    [class.compact-tables]="store.data().settings[0]?.compactDisplay"
+  >
+    @if (offline.updateAvailable()) {
+      <div class="alert">
+        Nueva versión disponible. Termina tu venta antes de actualizar.<button
+          mat-button
+          (click)="offline.reload()"
+        >
+          Actualizar aplicación
+        </button>
+      </div>
+    }
+    @if (store.error()) {
+      <div class="alert error" role="alert">
+        {{ store.error() }}<button mat-button (click)="store.error.set('')">Cerrar</button>
+      </div>
+    }
+    @if (store.notice()) {
+      <div class="alert success" role="status">
+        {{ store.notice() }}<button mat-button (click)="store.notice.set('')">Cerrar</button>
+      </div>
+    }
+    @if (store.ready()) {
+      <router-outlet />
+    } @else {
+      <h1>Almendros POS</h1>
+      <p>Preparando el almacenamiento local…</p>
+    }
+    <footer>ALMENDROS POS <span>Inventario claro. Ventas al día.</span></footer>
+  </main>
+</div>

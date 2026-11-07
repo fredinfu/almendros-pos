@@ -1,0 +1,181 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">RESULTADOS</div>
+    <h1>Reportes</h1>
+    <p>{{ store.event()?.name || 'Ventas rápidas · Sin evento' }}</p>
+  </div>
+  @if (store.ready()) {
+    <button mat-stroked-button (click)="store.exportCsv('report')">Exportar reporte CSV</button>
+  }
+</div>
+@if (store.ready()) {
+  <div class="metrics">
+    <div>
+      <span>Ventas brutas</span><strong>{{ store.money(store.report().gross) }}</strong>
+    </div>
+    <div>
+      <span>Descuentos</span><strong>{{ store.money(store.report().discounts) }}</strong>
+    </div>
+    <div>
+      <span>Ventas netas</span><strong>{{ store.money(store.report().net) }}</strong>
+    </div>
+    <div>
+      <span>Ticket promedio</span><strong>{{ store.money(store.report().average) }}</strong>
+    </div>
+  </div>
+  <div class="two-columns">
+    <section class="panel">
+      <h2>Resultado económico</h2>
+      <dl class="summary-list">
+        <dt>Transacciones / unidades</dt>
+        <dd>{{ store.report().transactions }} / {{ store.report().units }}</dd>
+        <dt>Ventas netas</dt>
+        <dd>{{ store.money(store.report().net) }}</dd>
+        <dt>Costo de productos conocido</dt>
+        <dd>{{ store.money(store.report().knownCost) }}</dd>
+        <dt>Gastos operativos</dt>
+        <dd>{{ store.money(store.report().expenses) }}</dd>
+        <dt>{{ store.report().costsKnown ? 'Utilidad estimada' : 'Resultado parcial' }}</dt>
+        <dd>
+          {{
+            store.money(
+              store.report().costsKnown
+                ? store.report().estimatedProfit
+                : store.report().partialMargin
+            )
+          }}
+        </dd>
+      </dl>
+      <div class="alert" [class.warning]="!store.report().costsKnown">
+        {{
+          store.report().costsKnown
+            ? 'Estimación según costos y gastos registrados. No es una liquidación fiscal.'
+            : 'Costos incompletos: ' +
+              store.report().missingCostUnits +
+              ' unidades sin costo. El resultado parcial no representa utilidad neta.'
+        }}
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Pagos y caja</h2>
+      <dl class="summary-list">
+        @for (p of store.report().payments; track p.method) {
+          <dt>{{ paymentLabels[p.method] }}</dt>
+          <dd>{{ store.money(p.totalMinor) }}</dd>
+        }
+        <dt>Reembolsos pendientes</dt>
+        <dd>{{ store.money(store.report().pendingRefunds) }}</dd>
+        <dt>Efectivo esperado</dt>
+        <dd>{{ store.money(store.report().expectedCash) }}</dd>
+        @if (store.event()?.closingCashMinor !== undefined) {
+          <dt>Efectivo contado</dt>
+          <dd>{{ store.money(store.event()!.closingCashMinor!) }}</dd>
+          <dt>Diferencia de caja</dt>
+          <dd>{{ store.money(store.event()!.closingCashMinor! - store.report().expectedCash) }}</dd>
+        }
+      </dl>
+      <p class="subtle">
+        La caja incluye fondo inicial, ventas en efectivo, gastos de caja y reembolsos pendientes.
+      </p>
+    </section>
+  </div>
+  <div class="two-columns">
+    <section class="panel">
+      <h2>Ventas por marca</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Marca</th>
+            <th>Unidades</th>
+            <th>Venta neta</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of store.report().byBrand; track r.name) {
+            <tr>
+              <td>{{ r.name }}</td>
+              <td>{{ r.quantity }}</td>
+              <td>{{ store.money(r.totalMinor) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+    <section class="panel">
+      <h2>Ventas por categoría</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Unidades</th>
+            <th>Venta neta</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of store.report().byCategory; track r.name) {
+            <tr>
+              <td>{{ r.name }}</td>
+              <td>{{ r.quantity }}</td>
+              <td>{{ store.money(r.totalMinor) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <section class="panel">
+    <h2>Productos populares</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Unidades</th>
+          <th>Venta neta</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of store.report().byProduct; track r.name) {
+          <tr>
+            <td>{{ r.name }}</td>
+            <td>{{ r.quantity }}</td>
+            <td>{{ store.money(r.totalMinor) }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="empty">Sin ventas completadas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+  <section class="panel">
+    <h2>Inventario del evento</h2>
+    <p>Muestras: {{ store.report().samples }} · Mermas: {{ store.report().waste }}</p>
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Stock remanente</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of store.report().remaining; track row.variantId) {
+          <tr>
+            <td>{{ row.sku }}</td>
+            <td>{{ row.quantity }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="2">Sin existencias remanentes.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+  <div class="actions">
+    <button mat-stroked-button (click)="store.exportCsv('sales')">Ventas CSV</button
+    ><button mat-stroked-button (click)="store.exportCsv('items')">Detalles CSV</button
+    ><button mat-stroked-button (click)="store.exportCsv('expenses')">Gastos CSV</button
+    ><button mat-stroked-button (click)="store.exportCsv('movements')">Movimientos CSV</button>
+  </div>
+}

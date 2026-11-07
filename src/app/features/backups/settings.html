@@ -1,0 +1,123 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">ESTE DISPOSITIVO</div>
+    <h1>Ajustes y respaldos</h1>
+    <p>Cada dispositivo tiene datos independientes. Los respaldos protegen tu operación.</p>
+  </div>
+</div>
+<div class="two-columns">
+  <section class="panel">
+    <h2>Preferencias</h2>
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+      <mat-form-field class="wide"
+        ><mat-label>Nombre del negocio</mat-label
+        ><input matInput formControlName="businessName" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Zona horaria</mat-label
+        ><input matInput formControlName="timeZone" /></mat-form-field
+      ><mat-form-field
+        ><mat-label>Recordar respaldo cada (días)</mat-label
+        ><input
+          matInput
+          type="number"
+          min="1"
+          max="365"
+          formControlName="backupReminderDays" /></mat-form-field
+      ><mat-checkbox formControlName="compactDisplay">Tablas compactas</mat-checkbox>
+      <p>Moneda: HNL · Idioma: es-HN</p>
+      <div class="wide">
+        <button mat-flat-button color="primary" [disabled]="store.busy() || form.invalid">
+          Guardar preferencias
+        </button>
+      </div>
+    </form>
+  </section>
+  <section class="panel">
+    <h2>Almacenamiento y conexión</h2>
+    <p>{{ storage() }}</p>
+    <p>
+      {{
+        persistent()
+          ? 'Persistencia concedida por el navegador.'
+          : 'El navegador puede liberar datos locales.'
+      }}
+    </p>
+    <p>{{ store.online() ? 'Con conexión a red.' : 'Sin conexión a red.' }}</p>
+    <p role="status" class="offline-status">{{ offline.message() }}</p>
+    <button mat-stroked-button (click)="offline.check()" [disabled]="offline.checking()">
+      Comprobar uso sin internet
+    </button>
+    @if (offline.updateAvailable()) {
+      <button mat-stroked-button (click)="offline.reload()">Actualizar aplicación</button>
+    }
+    <button mat-stroked-button (click)="persist()" [disabled]="store.busy()">
+      Solicitar almacenamiento persistente
+    </button>
+    <p class="subtle">
+      Borrar datos del navegador, perder el dispositivo o ciertas políticas del sistema pueden
+      eliminar la información. La persistencia no garantiza conservación.
+    </p>
+  </section>
+</div>
+<section class="panel">
+  <h2>Descargar respaldo completo</h2>
+  <p>
+    Incluye catálogo, inventario, eventos, ventas, pagos (incluidas fotos), gastos y configuración.
+    Guarda este archivo de forma privada.
+  </p>
+  <p>Último respaldo generado: {{ store.date(store.data().settings[0].lastBackupAt) }}</p>
+  <button mat-flat-button color="primary" (click)="store.exportBackup()" [disabled]="store.busy()">
+    Descargar respaldo JSON
+  </button>
+  <p class="subtle">
+    Guarda el archivo fuera del dispositivo y comprueba que se descargó correctamente.
+  </p>
+</section>
+<section class="panel">
+  <h2>Restaurar respaldo</h2>
+  <div class="alert warning">
+    La restauración reemplaza todos los datos locales. Descarga antes un respaldo de los datos
+    actuales.
+  </div>
+  <label class="file-label"
+    >Seleccionar archivo JSON<input
+      type="file"
+      accept=".json,application/json"
+      (change)="selectFile($event)"
+      [disabled]="store.busy()"
+  /></label>
+  @if (preview(); as backup) {
+    <div class="restore-preview">
+      <h3>{{ fileName() }}</h3>
+      <p>Exportado: {{ store.date(backup.exportedAt) }} · Esquema {{ backup.schemaVersion }}</p>
+      <p>
+        {{ backup.data.products.length }} productos · {{ backup.data.events.length }} eventos ·
+        {{ backup.data.sales.length }} ventas · {{ backup.data.movements.length }} movimientos
+      </p>
+      <mat-form-field
+        ><mat-label>Escribe REEMPLAZAR para confirmar</mat-label
+        ><input matInput [formControl]="confirmation" autocomplete="off" /></mat-form-field
+      ><button
+        mat-flat-button
+        color="primary"
+        [disabled]="store.busy() || confirmation.value !== 'REEMPLAZAR'"
+        (click)="restore()"
+      >
+        Reemplazar datos y restaurar
+      </button>
+    </div>
+  }
+</section>
+<section class="panel">
+  <h2>Instalar en iPad</h2>
+  <ol>
+    <li>Abre la dirección HTTPS de la aplicación en Safari.</li>
+    <li>Usa Compartir → Agregar a pantalla de inicio.</li>
+    <li>Abre el icono, espera a que se prepare y revisa el almacenamiento.</li>
+    <li>Prueba el modo avión antes de llevarla al evento.</li>
+  </ol>
+  <p>
+    La versión de desarrollo por IP local permite revisar la interfaz, pero requiere HTTPS para
+    habilitar la PWA.
+  </p>
+</section>

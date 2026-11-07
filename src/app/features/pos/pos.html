@@ -1,0 +1,351 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">PUNTO DE VENTA</div>
+    <h1>{{ store.event()?.name || 'Venta rápida' }}</h1>
+  </div>
+  <a mat-button routerLink="/sales">Historial de ventas →</a>
+</div>
+@if (store.event()?.status === 'closed') {
+  <div class="alert warning">
+    Este evento está cerrado. Elige Venta rápida u otro evento para vender.<a
+      mat-button
+      routerLink="/events"
+      >Administrar eventos</a
+    >
+  </div>
+}
+@if (lastReceipt()) {
+  <div class="receipt" role="status">✓ {{ lastReceipt() }}</div>
+}
+<div class="pos-layout">
+  <section class="products-pane">
+    <mat-form-field class="search"
+      ><mat-label>Buscar producto o presentación</mat-label
+      ><input matInput [value]="search()" (input)="search.set($any($event.target).value)"
+    /></mat-form-field>
+    <div class="categories" aria-label="Categorías">
+      <button mat-stroked-button [class.selected]="!category()" (click)="setCategory('')">
+        Todos
+      </button>
+      @for (cat of store.categories(); track cat.id) {
+        <button
+          mat-stroked-button
+          [class.selected]="category() === cat.id"
+          (click)="setCategory(cat.id)"
+        >
+          {{ cat.name }}
+        </button>
+      }
+    </div>
+    <div class="product-grid" [class.compact]="!category() && !search()">
+      @for (p of grouped(); track p.id) {
+        <button
+          class="product-tile"
+          (click)="select(p)"
+          [disabled]="store.busy() || store.event()?.status === 'closed'"
+        >
+          <strong>{{ p.name }}</strong>
+          <span class="variant">
+            @for (v of p.variants; track v.id) {
+              <span
+                >{{ v.name === 'Única' ? '' : v.name }} {{ store.money(v.priceMinor) }}<br
+              /></span>
+            }
+          </span>
+          <small>{{ store.options(p.id).join(' · ') }}</small>
+          @if (!p.variants.length) {
+            <span>Configurar presentación y precio</span>
+          }
+          @if (p.variants.length === 1 && p.variants[0].priceMinor === undefined) {
+            <span>Configurar precio</span>
+          }
+          @if (p.variants.length === 1 && store.availability(p.variants[0].id)! > 0) {
+            <small>{{ store.availability(p.variants[0].id) }} disp.</small>
+          }
+          @if (p.variants.length === 1 && store.availability(p.variants[0].id) === 0) {
+            <small>Sin existencias verificadas</small>
+          }
+        </button>
+      }
+    </div>
+    @if (!grouped().length) {
+      <p class="empty">No hay productos que coincidan con la búsqueda.</p>
+    }
+  </section>
+  <aside class="cart-panel">
+    <div class="section-heading">
+      <h2>Venta actual</h2>
+      <span class="badge">{{ cart().length }} artículos</span>
+    </div>
+    @for (line of cart(); track line.id) {
+      <div class="cart-line">
+        <strong>{{ line.label }}</strong
+        ><small>{{ store.money(line.expectedPriceMinor) }} por unidad</small>
+        <div class="line-controls">
+          <button
+            mat-stroked-button
+            [attr.aria-label]="'Restar ' + line.label"
+            (click)="adjust(line.id, -1)"
+          >
+            −</button
+          ><input
+            type="number"
+            min="1"
+            step="1"
+            [attr.aria-label]="'Cantidad ' + line.label"
+            [value]="line.quantity"
+            (change)="setQuantity(line.id, $any($event.target).value)"
+          /><button
+            mat-stroked-button
+            [attr.aria-label]="'Sumar ' + line.label"
+            (click)="adjust(line.id, 1)"
+          >
+            +</button
+          ><span>{{ store.money(line.quantity * line.expectedPriceMinor) }}</span
+          ><button
+            mat-button
+            [attr.aria-label]="'Eliminar ' + line.label"
+            (click)="remove(line.id)"
+          >
+            ×
+          </button>
+        </div>
+        @if (line.coffee) {
+          <label class="grind"
+            >Preparación<select
+              aria-label="Preparación"
+              [value]="line.grindOption"
+              (change)="grind(line.id, $any($event.target).value)"
+            >
+              @for (option of lineOptions(line.variantId); track option) {
+                <option [selected]="option === line.grindOption">{{ option }}</option>
+              }
+            </select></label
+          >
+        }
+      </div>
+    } @empty {
+      <div class="empty-cart">
+        <span>Tu carrito está vacío</span>
+        <p>Toca un producto para agregarlo.</p>
+      </div>
+    }
+    @if (pending()) {
+      <p class="subtle" role="status">Inventario pendiente de conciliar</p>
+    }
+    <form [formGroup]="form" (ngSubmit)="checkout()">
+      <dl class="summary-list">
+        <dt>Subtotal</dt>
+        <dd>{{ store.money(subtotal()) }}</dd>
+      </dl>
+      <mat-form-field class="full-width"
+        ><mat-label>Descuento L</mat-label
+        ><input matInput formControlName="discount" inputmode="decimal"
+      /></mat-form-field>
+      <div class="total">
+        <span>Total</span><strong>{{ store.money(total()) }}</strong>
+      </div>
+      @if (paying()) {
+        <div class="payment">
+          <h3>Revisar y cobrar</h3>
+          <mat-form-field class="full-width"
+            ><mat-label>Método de pago</mat-label
+            ><mat-select formControlName="method"
+              ><mat-option value="cash">Efectivo</mat-option
+              ><mat-option value="bac">BAC · registro manual</mat-option
+              ><mat-option value="kash">Kash · registro manual</mat-option
+              ><mat-option value="other">Otro</mat-option></mat-select
+            ></mat-form-field
+          >
+          @if (method() === 'cash') {
+            <mat-form-field class="full-width"
+              ><mat-label>Efectivo recibido L</mat-label
+              ><input matInput formControlName="received" inputmode="decimal" /><mat-hint
+                >Vacío = pago exacto</mat-hint
+              ></mat-form-field
+            >
+            <p>
+              Cambio: <strong>{{ store.money(change()) }}</strong>
+            </p>
+          } @else {
+            <p class="manual-note">
+              Registro manual. Confirma el pago por tu cuenta; esta aplicación no verifica
+              transacciones bancarias.
+            </p>
+            <mat-form-field class="full-width"
+              ><mat-label>Referencia (opcional)</mat-label
+              ><input matInput formControlName="reference"
+            /></mat-form-field>
+          }
+          @if (method() !== 'cash') {
+            <section class="payment-photo">
+              <h3>Foto de referencia (opcional)</h3>
+              <p class="subtle">Solo se guarda en este dispositivo y en tus respaldos.</p>
+              <div class="actions">
+                <button
+                  type="button"
+                  mat-stroked-button
+                  [disabled]="photoBusy() || store.busy()"
+                  (click)="camera.click()"
+                >
+                  Tomar foto</button
+                ><button
+                  type="button"
+                  mat-stroked-button
+                  [disabled]="photoBusy() || store.busy()"
+                  (click)="attachment.click()"
+                >
+                  Adjuntar foto
+                </button>
+              </div>
+              <input
+                #camera
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+                aria-label="Tomar foto de transferencia"
+                (change)="attachPhoto($event)"
+              />
+              <input
+                #attachment
+                type="file"
+                accept="image/*"
+                hidden
+                aria-label="Adjuntar foto de transferencia"
+                (change)="attachPhoto($event)"
+              />
+              @if (photoBusy()) {
+                <p role="status">Preparando foto…</p>
+              }
+              @if (evidence(); as photo) {
+                <img
+                  class="payment-evidence"
+                  [src]="photo.dataUrl"
+                  alt="Referencia de transferencia adjunta"
+                /><button type="button" mat-button [disabled]="store.busy()" (click)="clearPhoto()">
+                  Quitar foto
+                </button>
+              }
+            </section>
+          }
+          <mat-form-field class="full-width"
+            ><mat-label>Nota de la venta</mat-label
+            ><input matInput formControlName="notes" /></mat-form-field
+          ><button
+            mat-flat-button
+            color="primary"
+            class="checkout"
+            [disabled]="
+              store.busy() ||
+              photoBusy() ||
+              !cart().length ||
+              discount() < 0 ||
+              total() < 0 ||
+              change() < 0 ||
+              store.event()?.status === 'closed'
+            "
+          >
+            {{ store.busy() ? 'Guardando…' : 'Confirmar venta' }}</button
+          ><button mat-button type="button" (click)="paying.set(false)">Volver al carrito</button>
+        </div>
+      } @else {
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="checkout"
+          [disabled]="
+            !cart().length || discount() < 0 || total() < 0 || store.event()?.status === 'closed'
+          "
+          (click)="paying.set(true)"
+        >
+          Cobrar {{ store.money(total()) }}
+        </button>
+      }
+    </form>
+  </aside>
+</div>
+
+@if (selection(); as p) {
+  <div class="selection-backdrop" (keydown.escape)="selection.set(undefined)">
+    <section
+      class="selection-panel panel"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="selection-title"
+      tabindex="-1"
+      #selectionPanel
+    >
+      <h2 id="selection-title">{{ p.name }}</h2>
+      @if (store.error()) {
+        <p class="alert error" role="alert">{{ store.error() }}</p>
+      }
+      @if (choices().length > 1) {
+        <label
+          >Presentación<select
+            aria-label="Presentación de venta"
+            [value]="selectedVariant()"
+            (change)="selectedVariant.set($any($event.target).value)"
+          >
+            @for (v of choices(); track v.id) {
+              <option [value]="v.id" [selected]="v.id === selectedVariant()">
+                {{ v.name }} · {{ store.money(v.priceMinor) }}
+              </option>
+            }
+          </select></label
+        >
+      } @else if (choice(); as v) {
+        <p>{{ v.name === 'Única' ? '' : v.name }} {{ store.money(v.priceMinor) }}</p>
+      }
+      @if (options().length > 1) {
+        <label
+          >Preparación<select
+            aria-label="Preparación de venta"
+            [value]="selectedGrind()"
+            (change)="selectedGrind.set($any($event.target).value)"
+          >
+            @for (option of options(); track option) {
+              <option [selected]="option === selectedGrind()">{{ option }}</option>
+            }
+          </select></label
+        >
+      }
+      @if (!choice() || choice()?.priceMinor === undefined) {
+        <h3>Configurar precio</h3>
+        <label
+          >Precio de venta L<input
+            aria-label="Precio de venta L"
+            inputmode="decimal"
+            [value]="inlinePrice()"
+            (input)="inlinePrice.set($any($event.target).value)"
+        /></label>
+      }
+      @if (needsPack(choice())) {
+        <label
+          >Unidades del pack<input
+            aria-label="Unidades del pack"
+            inputmode="numeric"
+            [value]="inlinePack()"
+            (input)="inlinePack.set($any($event.target).value)"
+        /></label>
+      }
+      @if (choice() && store.availability(choice()!.id) === 0) {
+        <p class="alert warning">
+          Sin existencias verificadas. Registra una reposición o corrige el conteo en Inventario.
+        </p>
+      }
+      <div class="actions">
+        <button
+          mat-flat-button
+          [disabled]="store.busy() || (!!choice() && store.availability(choice()!.id) === 0)"
+          (click)="confirmSelection()"
+        >
+          Agregar a la venta</button
+        ><button mat-button (click)="selection.set(undefined)">Cancelar</button>
+      </div>
+    </section>
+  </div>
+}

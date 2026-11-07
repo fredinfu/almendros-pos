@@ -1,0 +1,434 @@
+{
+  "catalogSeedVersion": "2026-11-07.1",
+  "brands": [
+    {
+      "id": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "name": "Almendros Coffee Co.",
+      "slug": "almendros",
+      "isActive": true
+    },
+    {
+      "id": "6ae4985b-757a-477f-a3ec-38a722a10770",
+      "name": "AFTER Coffee",
+      "slug": "after",
+      "isActive": true
+    }
+  ],
+  "categories": [
+    {
+      "id": "7849e7fc-00cd-4cd3-aaa0-8d39bbe90479",
+      "name": "Café empacado",
+      "sortOrder": 0,
+      "isActive": true
+    },
+    {
+      "id": "851845bb-cc0b-4597-ac6f-3fdc23c60908",
+      "name": "Mercadería",
+      "sortOrder": 3,
+      "isActive": true
+    },
+    {
+      "id": "973c28b6-a34d-4f5c-80d8-d84f89bc4976",
+      "name": "Otros",
+      "sortOrder": 4,
+      "isActive": true
+    },
+    {
+      "id": "df966739-5c18-42c7-928f-558f8ca99130",
+      "name": "Bebidas",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "id": "e37c58bd-1b68-429a-988f-93cad6b7d474",
+      "name": "Coffee Pods",
+      "sortOrder": 1,
+      "isActive": true
+    }
+  ],
+  "products": [
+    {
+      "id": "003c3f99-0765-44f1-9c84-9ad9b63f83c8",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "7849e7fc-00cd-4cd3-aaa0-8d39bbe90479",
+      "name": "Parainema Lavado",
+      "description": "84 puntos. Fermentación anaeróbica de 100 horas. Floral, chocolate dulce, cítricos, caramelo y avellana.",
+      "productType": "packaged_coffee",
+      "tags": [],
+      "isActive": false
+    },
+    {
+      "id": "27741408-9794-4a5d-a54f-34adbe78ce0a",
+      "brandId": "6ae4985b-757a-477f-a3ec-38a722a10770",
+      "categoryId": "7849e7fc-00cd-4cd3-aaa0-8d39bbe90479",
+      "name": "Washed Blend",
+      "description": "",
+      "productType": "packaged_coffee",
+      "tags": [],
+      "isActive": true
+    },
+    {
+      "id": "87dc8266-8046-426a-938f-fe6a7b1fa8de",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "973c28b6-a34d-4f5c-80d8-d84f89bc4976",
+      "name": "Licor de café",
+      "description": "",
+      "productType": "other",
+      "tags": [],
+      "isActive": false
+    },
+    {
+      "id": "96f4614e-8a10-495c-a50c-fa4a7bb5d7bc",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "7849e7fc-00cd-4cd3-aaa0-8d39bbe90479",
+      "name": "Blended One",
+      "description": "Café de especialidad: blend de Geisha proceso honey y Catimor proceso natural.",
+      "productType": "packaged_coffee",
+      "tags": [],
+      "isActive": true
+    },
+    {
+      "id": "b1b603e4-bbe0-477d-a700-646c62fb3994",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "851845bb-cc0b-4597-ac6f-3fdc23c60908",
+      "name": "Stickers",
+      "description": "",
+      "productType": "merchandise",
+      "tags": [],
+      "isActive": true
+    },
+    {
+      "id": "b64a31b2-61b2-47d4-a0f8-410c7d9f3ec1",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "7849e7fc-00cd-4cd3-aaa0-8d39bbe90479",
+      "name": "Parainema Natural Edición Especial",
+      "description": "87 puntos. Fermentación anaeróbica de 120 horas. Frutas tropicales, banano, piña, dulzor de fruta madura y cuerpo jugoso. Arte especial y stickers coleccionables.",
+      "productType": "packaged_coffee",
+      "tags": [],
+      "isActive": false
+    },
+    {
+      "id": "cefbe857-ae40-45c6-8a3a-af56abbe5f6a",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "e37c58bd-1b68-429a-988f-93cad6b7d474",
+      "name": "Coffee Pods",
+      "description": "Paquetes como SKU independientes. Referencias: mediana L30/pod; grande L25/pod. Configurar unidades reales y precio total antes de vender.",
+      "productType": "coffee_pod",
+      "tags": [],
+      "isActive": true
+    },
+    {
+      "id": "dd40d13a-73b0-4338-83e6-82536acb2977",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "df966739-5c18-42c7-928f-558f8ca99130",
+      "name": "Iced coffee",
+      "description": "Sin receta ni consumo automático de café empacado. Configure el precio.",
+      "productType": "beverage",
+      "tags": [],
+      "isActive": true
+    },
+    {
+      "id": "e2864ea7-5672-477c-9e1f-c6b5a5fda889",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "df966739-5c18-42c7-928f-558f8ca99130",
+      "name": "Café filtrado",
+      "description": "Cafe filtrado por metodo.",
+      "productType": "beverage",
+      "tags": [],
+      "isActive": true
+    },
+    {
+      "id": "e9fb3d2c-0ac2-40ef-9e33-20febbdf0fa2",
+      "brandId": "3e0657ea-3e20-45ad-ba4b-2994c946c972",
+      "categoryId": "7849e7fc-00cd-4cd3-aaa0-8d39bbe90479",
+      "name": "Catimor Natural Anaeróbico",
+      "description": "",
+      "productType": "packaged_coffee",
+      "tags": [],
+      "isActive": false
+    }
+  ],
+  "variants": [
+    {
+      "id": "006d54c7-f811-4449-9cd4-f28021de930f",
+      "productId": "e9fb3d2c-0ac2-40ef-9e33-20febbdf0fa2",
+      "name": "½ lb",
+      "sku": "AL-CN-1",
+      "priceMinor": 16500,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 0
+    },
+    {
+      "id": "0ec84adf-b2a5-440b-91c5-68c2504c5ea1",
+      "productId": "96f4614e-8a10-495c-a50c-fa4a7bb5d7bc",
+      "name": "Molido",
+      "sku": "AL-BO-2",
+      "weightValue": 250,
+      "weightUnit": "g",
+      "priceMinor": 24500,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 1
+    },
+    {
+      "id": "125f6c44-dcd8-4009-a0ef-b5dbafddf880",
+      "productId": "27741408-9794-4a5d-a54f-34adbe78ce0a",
+      "name": "½ lb",
+      "sku": "AF-WB-1",
+      "priceMinor": 10000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 0
+    },
+    {
+      "id": "14a88d87-e45b-4151-aac3-b99578ddeaec",
+      "productId": "b1b603e4-bbe0-477d-a700-646c62fb3994",
+      "name": "Pack de 3",
+      "sku": "AL-ST-2",
+      "priceMinor": 6500,
+      "packUnits": 3,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "1ae74a69-ef05-457b-acbe-88fcf52e6537",
+      "productId": "27741408-9794-4a5d-a54f-34adbe78ce0a",
+      "name": "3 lb",
+      "sku": "AF-WB-3",
+      "priceMinor": 51000,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "1cf299d9-87e4-4472-a321-5460dfc11b68",
+      "productId": "87dc8266-8046-426a-938f-fe6a7b1fa8de",
+      "name": "1100 ml",
+      "sku": "AL-LC-3",
+      "priceMinor": 76300,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 2
+    },
+    {
+      "id": "21edd743-db0b-43b1-b855-d2d202c578b1",
+      "productId": "27741408-9794-4a5d-a54f-34adbe78ce0a",
+      "name": "1 lb",
+      "sku": "AF-WB-2",
+      "priceMinor": 18500,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "27673d1a-657d-4ee0-9225-575db5b8ef8f",
+      "productId": "b64a31b2-61b2-47d4-a0f8-410c7d9f3ec1",
+      "name": "250 g",
+      "sku": "AL-PN-1",
+      "priceMinor": 24500,
+      "compareAtPriceMinor": 26500,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 0
+    },
+    {
+      "id": "2df93435-8d0b-48d9-9bf5-d4ddd6b415f4",
+      "productId": "003c3f99-0765-44f1-9c84-9ad9b63f83c8",
+      "name": "1 lb",
+      "sku": "AL-PL-2",
+      "priceMinor": 27000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 1
+    },
+    {
+      "id": "384cdfe8-0fb6-497c-9a30-6d885af1ed91",
+      "productId": "96f4614e-8a10-495c-a50c-fa4a7bb5d7bc",
+      "name": "Única",
+      "sku": "AUTO-384CDFE8-0FB6-497C-9A30-6D885AF1ED91",
+      "priceMinor": 24500,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 0
+    },
+    {
+      "id": "40e77b6f-daf2-4bd2-94f7-7978a7fd6766",
+      "productId": "cefbe857-ae40-45c6-8a3a-af56abbe5f6a",
+      "name": "Bolsa 6 Blended One",
+      "sku": "AL-POD-2",
+      "weightValue": 75,
+      "weightUnit": "g",
+      "priceMinor": 22000,
+      "packUnits": 6,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "420e7193-4ff9-4453-8b98-d7c995543cfd",
+      "productId": "27741408-9794-4a5d-a54f-34adbe78ce0a",
+      "name": "5 lb",
+      "sku": "AF-WB-4",
+      "priceMinor": 75000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 3
+    },
+    {
+      "id": "477251c3-a277-4edb-b570-766ce3803866",
+      "productId": "b1b603e4-bbe0-477d-a700-646c62fb3994",
+      "name": "Pack de 5",
+      "sku": "AL-ST-3",
+      "priceMinor": 9500,
+      "packUnits": 5,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "5ab07a92-e37c-402d-a6ab-ce43ef8ac031",
+      "productId": "b1b603e4-bbe0-477d-a700-646c62fb3994",
+      "name": "Pack de 8",
+      "sku": "AL-ST-4",
+      "priceMinor": 14000,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "63e3e71c-33c7-46db-95e8-548a81bb93fe",
+      "productId": "e2864ea7-5672-477c-9e1f-c6b5a5fda889",
+      "name": "Mugen",
+      "sku": "AUTO-63E3E71C-33C7-46DB-95E8-548A81BB93FE",
+      "priceMinor": 6500,
+      "trackInventory": false,
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "81e193dc-cb34-4bbf-b542-3a7789d66b86",
+      "productId": "b1b603e4-bbe0-477d-a700-646c62fb3994",
+      "name": "Individual",
+      "sku": "AL-ST-1",
+      "priceMinor": 3000,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 0
+    },
+    {
+      "id": "825754c1-616b-4d48-817d-160798969b0b",
+      "productId": "dd40d13a-73b0-4338-83e6-82536acb2977",
+      "name": "Regular",
+      "sku": "AL-BEV2-1",
+      "priceMinor": 6500,
+      "trackInventory": false,
+      "isActive": true,
+      "sortOrder": 0
+    },
+    {
+      "id": "91186b36-c7d5-4ab6-94e4-1614c6a4d4d6",
+      "productId": "87dc8266-8046-426a-938f-fe6a7b1fa8de",
+      "name": "225 ml",
+      "sku": "AL-LC-1",
+      "priceMinor": 20000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 0
+    },
+    {
+      "id": "9ff031d8-bf22-44e7-a53e-64bee5bce0d4",
+      "productId": "003c3f99-0765-44f1-9c84-9ad9b63f83c8",
+      "name": "½ lb",
+      "sku": "AL-PL-1",
+      "priceMinor": 14000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 0
+    },
+    {
+      "id": "a3c5363e-e904-4ff9-813d-9f1ac28a76b3",
+      "productId": "cefbe857-ae40-45c6-8a3a-af56abbe5f6a",
+      "name": "Bolsa grande",
+      "sku": "AL-POD-3",
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 2
+    },
+    {
+      "id": "a8558d66-16c4-47dd-a7fd-b97ca1b43ed3",
+      "productId": "cefbe857-ae40-45c6-8a3a-af56abbe5f6a",
+      "name": "Individual premium",
+      "sku": "AL-POD-1",
+      "weightValue": 12.5,
+      "weightUnit": "g",
+      "priceMinor": 3000,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 0
+    },
+    {
+      "id": "a8e74e63-0d57-4541-931a-7d372b1aa0e5",
+      "productId": "b64a31b2-61b2-47d4-a0f8-410c7d9f3ec1",
+      "name": "500 g",
+      "sku": "AL-PN-2",
+      "priceMinor": 48000,
+      "compareAtPriceMinor": 49000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 1
+    },
+    {
+      "id": "bf5252f7-1149-4e39-a850-514c44e4f092",
+      "productId": "dd40d13a-73b0-4338-83e6-82536acb2977",
+      "name": "Latte",
+      "sku": "AUTO-BF5252F7-1149-4E39-A850-514C44E4F092",
+      "priceMinor": 6500,
+      "compareAtPriceMinor": 6500,
+      "trackInventory": true,
+      "isActive": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "c8f1b63e-dfda-423c-88ad-0c8f5d1a658e",
+      "productId": "dd40d13a-73b0-4338-83e6-82536acb2977",
+      "name": "Chocolate",
+      "sku": "AUTO-C8F1B63E-DFDA-423C-88AD-0C8F5D1A658E",
+      "priceMinor": 6500,
+      "trackInventory": false,
+      "isActive": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "dc7fa941-4d3b-4c6e-9af3-fd09f8525f68",
+      "productId": "87dc8266-8046-426a-938f-fe6a7b1fa8de",
+      "name": "500 ml",
+      "sku": "AL-LC-2",
+      "priceMinor": 40000,
+      "trackInventory": true,
+      "isActive": false,
+      "sortOrder": 1
+    },
+    {
+      "id": "e00df137-eec3-4d44-bf32-ff5532da1238",
+      "productId": "e2864ea7-5672-477c-9e1f-c6b5a5fda889",
+      "name": "Chemex",
+      "sku": "AL-BEV1-1",
+      "priceMinor": 6500,
+      "trackInventory": false,
+      "isActive": true,
+      "sortOrder": 0
+    },
+    {
+      "id": "ffb49768-6a10-4253-b40d-960ebb1f6562",
+      "productId": "dd40d13a-73b0-4338-83e6-82536acb2977",
+      "name": "Fresa",
+      "sku": "AUTO-FFB49768-6A10-4253-B40D-960EBB1F6562",
+      "priceMinor": 6500,
+      "trackInventory": false,
+      "isActive": true,
+      "sortOrder": 2
+    }
+  ]
+}

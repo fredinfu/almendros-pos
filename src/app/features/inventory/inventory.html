@@ -1,0 +1,168 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">EXISTENCIAS Y TRAZABILIDAD</div>
+    <h1>Inventario</h1>
+    <p>Los saldos se reconstruyen desde el historial de movimientos.</p>
+  </div>
+  <button mat-stroked-button (click)="store.exportCsv('inventory')">Exportar inventario CSV</button>
+</div>
+<mat-form-field
+  ><mat-label>Ubicación de inventario</mat-label
+  ><mat-select [value]="locationId()" (selectionChange)="locationId.set($event.value)">
+    @for (location of store.data().locations; track location.id) {
+      <mat-option [value]="location.id">{{ location.name }}</mat-option>
+    }
+  </mat-select></mat-form-field
+>
+<section class="panel">
+  <h2>Registrar / conciliar stock</h2>
+  <p>
+    Cuenta las unidades físicas del Almacén General. Los paquetes cuentan como un paquete, sin
+    incluir sus unidades también como sueltas.
+  </p>
+  <form [formGroup]="countForm" (ngSubmit)="reconcile()" class="form-grid">
+    <mat-form-field
+      ><mat-label>Presentación a conciliar</mat-label
+      ><mat-select formControlName="variantId">
+        @for (v of store.variants(); track v.id) {
+          @if (v.trackInventory) {
+            <mat-option [value]="v.id">{{ v.label }} · {{ pending(v.id) }} pendientes</mat-option>
+          }
+        }
+      </mat-select></mat-form-field
+    >
+    <mat-form-field
+      ><mat-label>El conteo corresponde a</mat-label
+      ><mat-select formControlName="mode"
+        ><mat-option value="current">Stock físico actualmente disponible</mat-option
+        ><mat-option value="beginning"
+          >Stock al inicio del período de ventas</mat-option
+        ></mat-select
+      ></mat-form-field
+    >
+    <mat-form-field
+      ><mat-label>Unidades contadas</mat-label
+      ><input matInput type="number" min="0" step="1" formControlName="quantity"
+    /></mat-form-field>
+    <button mat-flat-button [disabled]="store.busy() || countForm.invalid">Confirmar conteo</button>
+  </form>
+</section>
+<section class="panel">
+  <h2>Registrar movimiento</h2>
+  <form [formGroup]="form" (ngSubmit)="record()" class="form-grid four">
+    <mat-form-field
+      ><mat-label>Variante</mat-label
+      ><mat-select formControlName="variantId">
+        @for (v of store.variants(); track v.id) {
+          @if (v.trackInventory) {
+            <mat-option [value]="v.id">{{ v.label }}</mat-option>
+          }
+        }
+      </mat-select></mat-form-field
+    >
+    <mat-form-field
+      ><mat-label>Movimiento</mat-label
+      ><mat-select formControlName="type"
+        ><mat-option value="initial_stock">Inventario inicial</mat-option
+        ><mat-option value="restock">Reposición</mat-option
+        ><mat-option value="sample">Muestra</mat-option
+        ><mat-option value="waste">Merma / daño</mat-option
+        ><mat-option value="adjustment_in">Ajuste de entrada</mat-option
+        ><mat-option value="adjustment_out">Ajuste de salida</mat-option></mat-select
+      ></mat-form-field
+    >
+    <mat-form-field
+      ><mat-label>Unidades</mat-label
+      ><input matInput type="number" min="1" step="1" formControlName="quantity" /></mat-form-field
+    ><mat-form-field
+      ><mat-label>Motivo</mat-label><input matInput formControlName="note" maxlength="2000"
+    /></mat-form-field>
+    <div class="actions wide">
+      <button mat-flat-button color="primary" [disabled]="store.busy() || form.invalid">
+        Registrar movimiento</button
+      ><a mat-button routerLink="/events">Transferir a un evento →</a>
+    </div>
+  </form>
+</section>
+<section class="panel">
+  <h2>Existencias por presentación</h2>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>SKU</th>
+          <th>Unidades</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of store.variants(); track v.id) {
+          @if (v.trackInventory) {
+            <tr>
+              <td>
+                {{ v.label }}<small>{{ v.brand.name }}</small>
+              </td>
+              <td>
+                {{ v.sku.startsWith('AUTO-') ? '—' : v.sku
+                }}<small>{{ pending(v.id) }} pendientes</small>
+              </td>
+              <td class="numeric">
+                {{ store.known(v.id) ? store.stock(v.id, locationId()) : 'Sin registrar' }}
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  [class.low]="store.stock(v.id, locationId()) <= (v.lowStockThreshold ?? 0)"
+                  >{{
+                    store.stock(v.id, locationId()) <= (v.lowStockThreshold ?? 0)
+                      ? store.known(v.id)
+                        ? 'Stock bajo'
+                        : 'Sin registrar'
+                      : 'Disponible'
+                  }}</span
+                >
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="panel">
+  <div class="section-heading">
+    <h2>Movimientos</h2>
+    <button mat-button (click)="store.exportCsv('movements', '')">Exportar todos CSV</button>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Producto</th>
+          <th>Tipo</th>
+          <th>Unidades</th>
+          <th>Origen → destino</th>
+          <th>Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of movements(); track m.id) {
+          <tr>
+            <td>{{ store.date(m.occurredAt) }}</td>
+            <td>{{ label(m.variantId) }}</td>
+            <td>{{ labels[m.type] }}</td>
+            <td>{{ m.quantity }}</td>
+            <td>{{ location(m.fromLocationId) }} → {{ location(m.toLocationId) }}</td>
+            <td>{{ m.note || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty">Todavía no hay movimientos en esta ubicación.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
