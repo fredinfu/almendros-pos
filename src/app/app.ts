@@ -1,3 +1,4 @@
+import { EventPaymentDialog } from './shared/event-payment-dialog';
 import { OfflineService } from './core/offline.service';
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
@@ -6,7 +7,7 @@ import { AppStore } from './core/app.store';
 import { statusLabels } from './shared/labels';
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule],
+  imports: [EventPaymentDialog, RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

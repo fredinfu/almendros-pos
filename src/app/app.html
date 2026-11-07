@@ -77,3 +77,7 @@
     <footer>ALMENDROS POS <span>Inventario claro. Ventas al día.</span></footer>
   </main>
 </div>
+
+@defer (when store.ready()) {
+  <app-event-payment-dialog />
+}

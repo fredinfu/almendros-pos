@@ -25,6 +25,7 @@ const checkoutSchema = z.strictObject({
         variantId: z.uuid(),
         quantity: z.number().int().positive().max(1000000),
         expectedPriceMinor: z.number().int().nonnegative(),
+        pieceDescriptions: z.array(z.string().trim().max(120)).max(1000).optional(),
         grindOption: z.string().max(100).optional(),
       }),
     )
@@ -77,7 +78,14 @@ export class SalesService {
           /bolsa|paquete|pack/i.test(variant.name)
         )
           requireRule(variant.packUnits, 'Configure las unidades del paquete.');
+        if (line.pieceDescriptions)
+          requireRule(
+            product.productType === 'merchandise' &&
+              line.pieceDescriptions.length === line.quantity * (variant.packUnits ?? 1),
+            'Revise las descripciones por pieza de mercadería.',
+          );
         return {
+          ...(line.pieceDescriptions ? { pieceDescriptions: line.pieceDescriptions } : {}),
           id: newId(),
           saleId: command.id,
           variantId: variant.id,

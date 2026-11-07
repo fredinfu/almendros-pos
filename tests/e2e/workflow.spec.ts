@@ -1,5 +1,5 @@
 import { loadLegacyFixture } from './legacy-fixture';
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './test';
 test.beforeEach(async ({ page }) => loadLegacyFixture(page));
 
 test('acciones directas: cancelar y confirmar estado y eliminación', async ({ page }) => {
@@ -46,7 +46,7 @@ async function prepare(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Nuevo evento' }).click();
   await page.getByLabel('Nombre del evento').fill('Feria de prueba');
   await page.getByRole('button', { name: 'Crear borrador' }).click();
-  await expect(page.locator('.alert.success')).toContainText('Evento creado');
+  await expect(page.locator('.alert.success')).toContainText(/Evento creado|Métodos guardados/);
   await choose(page, 'Producto para transferir', /Coffee Pods · Individual premium/);
   await page.getByLabel('Cantidad a transferir').fill('30');
   await page.getByRole('button', { name: 'Transferir', exact: true }).click();

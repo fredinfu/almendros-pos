@@ -75,6 +75,9 @@
         <h2>{{ event.name }}</h2>
       </div>
       <div class="actions">
+        <button mat-stroked-button (click)="vault.request.set({ eventId: event.id })">
+          Métodos de pago
+        </button>
         @if (event.status === 'draft') {
           <button mat-flat-button color="primary" [disabled]="store.busy()" (click)="open()">
             Abrir evento

@@ -217,4 +217,28 @@
   margin-top: 8px;
 }
 
-.payment-evidence { display:block; width:100%; max-height:240px; object-fit:contain; border:1px solid #d9d1c8; margin:12px 0; }
+.payment-evidence {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border: 1px solid #d9d1c8;
+  margin: 12px 0;
+}
+
+.piece-fields {
+  margin-top: 12px;
+  max-height: 320px;
+  overflow: auto;
+}
+.account-details {
+  padding: 16px;
+  background: #f3eee6;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+.account-code {
+  font-size: 1.35rem;
+  font-weight: 700;
+  user-select: all;
+}

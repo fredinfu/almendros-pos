@@ -110,6 +110,26 @@
             ×
           </button>
         </div>
+        @if (line.pieceDescriptions; as pieces) {
+          <div class="piece-fields">
+            <small
+              >Describe cada pieza (opcional). Se recuerdan las descripciones de ventas
+              guardadas.</small
+            >
+            @for (description of pieces; track $index) {
+              <mat-form-field class="full-width">
+                <mat-label>Pieza {{ $index + 1 }}</mat-label>
+                <input
+                  matInput
+                  list="piece-suggestions"
+                  maxlength="120"
+                  [value]="description"
+                  (input)="describePiece(line.id, $index, $any($event.target).value)"
+                />
+              </mat-form-field>
+            }
+          </div>
+        }
         @if (line.coffee) {
           <label class="grind"
             >Preparación<select
@@ -130,6 +150,11 @@
         <p>Toca un producto para agregarlo.</p>
       </div>
     }
+    <datalist id="piece-suggestions">
+      @for (text of pieceSuggestions(); track text) {
+        <option [value]="text"></option>
+      }
+    </datalist>
     @if (pending()) {
       <p class="subtle" role="status">Inventario pendiente de conciliar</p>
     }
@@ -152,11 +177,31 @@
             ><mat-label>Método de pago</mat-label
             ><mat-select formControlName="method"
               ><mat-option value="cash">Efectivo</mat-option
-              ><mat-option value="bac">BAC · registro manual</mat-option
-              ><mat-option value="kash">Kash · registro manual</mat-option
-              ><mat-option value="other">Otro</mat-option></mat-select
+              ><mat-option value="bac" [disabled]="!accepts('bac')"
+                >BAC · registro manual</mat-option
+              ><mat-option value="ficohsa" [disabled]="!accepts('ficohsa')"
+                >Ficohsa · registro manual</mat-option
+              ><mat-option value="atlantida" [disabled]="!accepts('atlantida')"
+                >Banco Atlántida · registro manual</mat-option
+              ><mat-option value="kash" [disabled]="!accepts('kash')"
+                >Kash · registro manual</mat-option
+              ><mat-option value="other" [disabled]="!accepts('other')"
+                >Otro</mat-option
+              ></mat-select
             ></mat-form-field
           >
+          @if (account(); as account) {
+            <section class="account-details">
+              <strong>{{ account.name }}</strong>
+              <p class="account-code">{{ account.code }}</p>
+              @if (account.holder) {
+                <p>{{ account.holder }}</p>
+              }
+              <button type="button" mat-stroked-button (click)="copyAccount()">
+                Copiar cuenta
+              </button>
+            </section>
+          }
           @if (method() === 'cash') {
             <mat-form-field class="full-width"
               ><mat-label>Efectivo recibido L</mat-label
@@ -258,7 +303,7 @@
           [disabled]="
             !cart().length || discount() < 0 || total() < 0 || store.event()?.status === 'closed'
           "
-          (click)="paying.set(true)"
+          (click)="beginPayment()"
         >
           Cobrar {{ store.money(total()) }}
         </button>

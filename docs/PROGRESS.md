@@ -1,3 +1,13 @@
+Verificación de esta actualización: 60/60 pruebas unitarias, 14/14 escenarios de navegador, lint y build correctos. Incluye cifrado local persistente, separación por evento, exclusión del respaldo, descripciones de piezas y copia de una cuenta ficticia.
+
+## Métodos privados por evento — 2026-11-07
+
+Se retiran todas las cuentas precargadas. Configuración explícita por evento: efectivo siempre y BAC/Ficohsa/Atlántida/Kash opcionales con cuenta/usuario y titular obligatorios al habilitar. Primer ingreso sin eventos abre diálogo; permite continuar para restaurar respaldo. Se exige configurar antes de abrir evento o cobrar en él. Eventos existentes conservados. Bóveda separada IndexedDB AES-GCM con clave no exportable del dispositivo, IV aleatorio y eventId autenticado. No se incluye en JSON ni en Git ni se sincroniza: hay que reingresar cuentas en otro navegador. El cifrado en reposo no protege frente a alguien con acceso al navegador desbloqueado.
+
+## Ajuste sencillo de mercadería y cuentas — 2026-11-07
+
+Descripciones opcionales por pieza en carrito de mercadería (cantidad × packUnits, individual=1), sugerencias nativas desde ventas locales guardadas, historial y respaldo. Campo SaleItem.pieceDescriptions opcional: sin migración ni cambios de stock. BAC, Ficohsa, Atlántida y Kash muestran cuenta y copiar; Ficohsa/Atlántida conservan método interno Otro y nombre en referencia. Sin QR ni dependencias nuevas.
+
 # Progreso — 2026-11-07
 
 ## v1.1.1 — Foto de pago, catálogo público y Pages

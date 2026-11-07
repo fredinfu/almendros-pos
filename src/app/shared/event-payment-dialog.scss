@@ -1,0 +1,18 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0007;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.dialog {
+  width: min(520px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+}
+mat-checkbox {
+  display: block;
+  margin-bottom: 12px;
+}

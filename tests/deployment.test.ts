@@ -104,7 +104,14 @@ it('foto se guarda atómicamente con pago, sobrevive respaldo y no se duplica en
     const evidence = { dataUrl: 'data:image/jpeg;base64,/9j/2Q==', width: 1, height: 1 };
     const cmd = {
       id: newId(),
-      lines: [{ variantId: v.id, quantity: 1, expectedPriceMinor: 3000 }],
+      lines: [
+        {
+          variantId: v.id,
+          quantity: 1,
+          expectedPriceMinor: 3000,
+          pieceDescriptions: ['Flor de café'],
+        },
+      ],
       discountMinor: 0,
       method: 'bac' as const,
       evidence,
@@ -112,6 +119,7 @@ it('foto se guarda atómicamente con pago, sobrevive respaldo y no se duplica en
     const sales = new SalesService(repo);
     await Promise.all([sales.checkout(cmd), sales.checkout(cmd)]);
     const state = await repo.read();
+    expect(state.items[0].pieceDescriptions).toEqual(['Flor de café']);
     expect(state.payments).toHaveLength(1);
     expect(state.payments[0].evidence).toEqual(evidence);
     const backups = new BackupService(repo),

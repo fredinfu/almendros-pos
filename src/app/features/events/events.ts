@@ -1,3 +1,4 @@
+import { EventPaymentsService } from '../../core/event-payments.service';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormRecord, Validators } from '@angular/forms';
 import { AppStore } from '../../core/app.store';
@@ -11,6 +12,7 @@ import { newId, now, parseMoney } from '../../domain/models';
 })
 export class EventsPage {
   readonly store = inject(AppStore);
+  readonly vault = inject(EventPaymentsService);
   private readonly fb = inject(FormBuilder);
   readonly statusLabels = statusLabels;
   readonly paymentLabels = paymentLabels;
@@ -57,7 +59,15 @@ export class EventsPage {
     });
   }
   async open(): Promise<void> {
-    await this.store.run(() => this.store.events.open(this.store.eventId()), 'Evento abierto.');
+    try {
+      if (!(await this.vault.read(this.store.eventId()))) {
+        this.vault.request.set({ eventId: this.store.eventId(), openAfter: true });
+        return;
+      }
+      await this.store.run(() => this.store.events.open(this.store.eventId()), 'Evento abierto.');
+    } catch {
+      this.vault.request.set({ eventId: this.store.eventId(), openAfter: true });
+    }
   }
   async create(): Promise<void> {
     if (this.form.invalid) return;
@@ -76,6 +86,7 @@ export class EventsPage {
     }, 'Evento creado en borrador. Ya puedes registrar ventas.');
     if (ok) {
       this.store.selectEvent(id);
+      this.vault.request.set({ eventId: id });
       this.creating.set(false);
       this.form.reset();
     }

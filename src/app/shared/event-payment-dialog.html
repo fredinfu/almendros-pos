@@ -1,0 +1,57 @@
+@if (vault.request(); as request) {
+  <div class="backdrop">
+    <section
+      class="panel dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="payment-dialog-title"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+    >
+      <h2 id="payment-dialog-title">
+        {{ request.eventId ? 'Métodos de pago del evento' : 'Tu primer evento' }}
+      </h2>
+      @if (!request.eventId) {
+        <mat-form-field class="full-width"
+          ><mat-label>Nombre del evento</mat-label
+          ><input matInput [formControl]="name" maxlength="150"
+        /></mat-form-field>
+      }
+      <p>Efectivo siempre disponible. Activa los métodos que aceptarás y completa sus datos.</p>
+      @for (row of rows; track row.method) {
+        <div [formGroup]="row.form">
+          <mat-checkbox formControlName="enabled">{{ row.name }}</mat-checkbox>
+          @if (row.form.controls.enabled.value) {
+            <mat-form-field class="full-width"
+              ><mat-label>Cuenta o usuario {{ row.name }}</mat-label
+              ><input matInput formControlName="code" maxlength="100" required autocomplete="off"
+            /></mat-form-field>
+            <mat-form-field class="full-width"
+              ><mat-label>Titular {{ row.name }}</mat-label
+              ><input matInput formControlName="holder" maxlength="150" required autocomplete="off"
+            /></mat-form-field>
+          }
+        </div>
+      }
+      <p class="subtle">
+        Cifrados en este navegador. No se publican ni se incluyen en el respaldo; al cambiar de
+        dispositivo tendrás que ingresarlos otra vez.
+      </p>
+      @if (error()) {
+        <p role="alert" class="alert error">{{ error() }}</p>
+      }
+      <div class="actions">
+        <button mat-flat-button [disabled]="loading() || store.busy()" (click)="save()">
+          Guardar métodos
+        </button>
+        <button
+          mat-button
+          [disabled]="loading() || store.busy()"
+          (click)="vault.request.set(undefined)"
+        >
+          {{ request.eventId ? 'Cancelar' : 'Continuar para restaurar respaldo' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

@@ -1,3 +1,8 @@
+import {
+  EventPaymentsService,
+  LocalAccount,
+  PAYMENT_CHOICES,
+} from '../../core/event-payments.service';
 import { preparePaymentPhoto } from '../../shared/payment-photo';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
@@ -21,6 +26,8 @@ interface CartLine {
   expectedPriceMinor: number;
   grindOption: string;
   coffee: boolean;
+  pieceDescriptions?: string[];
+  packUnits: number;
 }
 @Component({
   selector: 'app-pos',
@@ -62,6 +69,75 @@ export class PosPage {
     } finally {
       if (sequence === this.photoSequence) this.photoBusy.set(false);
     }
+  }
+  readonly vault = inject(EventPaymentsService);
+  readonly accounts = signal<LocalAccount[] | undefined>(undefined);
+  readonly account = computed(() => {
+    const a = this.accounts()?.find((a) => a.method === this.method());
+    return a ? { ...a, name: PAYMENT_CHOICES.find((p) => p.method === a.method)!.name } : undefined;
+  });
+  accepts(method: string): boolean {
+    return !this.store.eventId() || !!this.accounts()?.some((a) => a.method === method);
+  }
+  async beginPayment(): Promise<void> {
+    if (this.store.eventId()) {
+      try {
+        this.accounts.set(await this.vault.read(this.store.eventId()));
+      } catch {
+        this.accounts.set(undefined);
+      }
+      if (!this.accounts()) {
+        this.vault.request.set({ eventId: this.store.eventId() });
+        return;
+      }
+    }
+    this.paying.set(true);
+  }
+  readonly pieceSuggestions = computed(() =>
+    [
+      ...new Set(
+        [
+          ...this.store.data().items.flatMap((i) => i.pieceDescriptions ?? []),
+          ...this.cart().flatMap((i) => i.pieceDescriptions ?? []),
+        ].filter(Boolean),
+      ),
+    ].sort((a, b) => a.localeCompare(b)),
+  );
+  async copyAccount(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.account()!.code);
+      this.store.notice.set('Cuenta copiada.');
+    } catch {
+      this.store.error.set('Mantén presionado el número de cuenta para copiarlo.');
+    }
+  }
+  describePiece(id: string, index: number, value: string): void {
+    this.cart.update((lines) =>
+      lines.map((line) =>
+        line.id !== id
+          ? line
+          : {
+              ...line,
+              pieceDescriptions: line.pieceDescriptions!.map((text, i) =>
+                i === index ? value : text,
+              ),
+            },
+      ),
+    );
+  }
+  private resizePieces(line: CartLine, quantity: number): CartLine {
+    return {
+      ...line,
+      quantity,
+      ...(line.pieceDescriptions
+        ? {
+            pieceDescriptions: Array.from(
+              { length: quantity * line.packUnits },
+              (_, i) => line.pieceDescriptions![i] ?? '',
+            ),
+          }
+        : {}),
+    };
   }
   readonly paying = signal(false);
   readonly lastReceipt = signal('');
@@ -232,6 +308,19 @@ export class PosPage {
   private commandId = newId();
   constructor() {
     effect(() => {
+      const id = this.store.eventId();
+      this.vault.revision();
+      this.accounts.set(undefined);
+      void this.vault
+        .read(id)
+        .then((accounts) => {
+          if (this.store.eventId() === id) this.accounts.set(accounts);
+        })
+        .catch(() => {
+          if (this.store.eventId() === id) this.accounts.set(undefined);
+        });
+    });
+    effect(() => {
       if (this.method() === 'cash') this.clearPhoto();
     });
     let previous = this.store.eventId();
@@ -272,6 +361,10 @@ export class PosPage {
           expectedPriceMinor: v.priceMinor!,
           grindOption: selected,
           coffee: v.product.productType === 'packaged_coffee',
+          packUnits: v.packUnits ?? 1,
+          ...(v.product.productType === 'merchandise'
+            ? { pieceDescriptions: Array.from({ length: v.packUnits ?? 1 }, () => '') }
+            : {}),
         },
       ]);
   }
@@ -286,16 +379,21 @@ export class PosPage {
       this.store.error.set('Stock insuficiente.');
       return;
     }
+    if (line.pieceDescriptions && (line.quantity + increment) * line.packUnits > 1000) return;
     this.cart.update((lines) =>
       lines
-        .map((row) => (row.id === id ? { ...row, quantity: row.quantity + increment } : row))
+        .map((row) => (row.id === id ? this.resizePieces(row, row.quantity + increment) : row))
         .filter((row) => row.quantity > 0),
     );
   }
   setQuantity(id: string, value: string): void {
     const quantity = Number(value);
     if (!Number.isInteger(quantity) || quantity < 1) return;
-    this.cart.update((lines) => lines.map((row) => (row.id === id ? { ...row, quantity } : row)));
+    const line = this.cart().find((row) => row.id === id)!;
+    if (line.pieceDescriptions && quantity * line.packUnits > 1000) return;
+    this.cart.update((lines) =>
+      lines.map((row) => (row.id === id ? this.resizePieces(row, quantity) : row)),
+    );
   }
   remove(id: string): void {
     this.cart.update((lines) => lines.filter((row) => row.id !== id));
@@ -325,6 +423,11 @@ export class PosPage {
       return;
     const ok = await this.store.run(async () => {
       const v = this.form.getRawValue();
+      if (this.store.eventId()) {
+        const accounts = await this.vault.read(this.store.eventId());
+        if (!accounts || (v.method !== 'cash' && !accounts.some((a) => a.method === v.method)))
+          throw new Error('Configura o selecciona un método habilitado para este evento.');
+      }
       const sale = await this.store.sales.checkout({
         id: this.commandId,
         ...(this.store.eventId() ? { eventId: this.store.eventId() } : {}),
@@ -332,15 +435,18 @@ export class PosPage {
           variantId: line.variantId,
           quantity: line.quantity,
           expectedPriceMinor: line.expectedPriceMinor,
+          ...(line.pieceDescriptions ? { pieceDescriptions: line.pieceDescriptions } : {}),
           ...(line.coffee ? { grindOption: line.grindOption } : {}),
         })),
         discountMinor: parseMoney(v.discount || '0'),
-        method: v.method as PaymentMethod,
+        method: (['ficohsa', 'atlantida'].includes(v.method) ? 'other' : v.method) as PaymentMethod,
         ...(v.method === 'cash'
           ? { receivedMinor: parseMoney(v.received || (this.total() / 100).toFixed(2)) }
           : {}),
         ...(v.method !== 'cash' && this.evidence() ? { evidence: this.evidence() } : {}),
-        reference: v.reference,
+        reference: [PAYMENT_CHOICES.find((p) => p.method === v.method)?.name, v.reference]
+          .filter(Boolean)
+          .join(' · '),
         notes: v.notes,
       });
       this.lastReceipt.set(

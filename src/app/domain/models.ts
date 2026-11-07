@@ -163,6 +163,7 @@ export const itemSchema = z.strictObject({
   brandNameSnapshot: text,
   categoryNameSnapshot: text,
   grindOptionSnapshot: text.optional(),
+  pieceDescriptions: z.array(z.string().trim().max(120)).max(1000).optional(),
   quantity,
   unitPriceMinor: money,
   unitCostMinor: money.optional(),

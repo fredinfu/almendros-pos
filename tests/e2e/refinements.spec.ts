@@ -1,5 +1,5 @@
 import { loadLegacyFixture } from './legacy-fixture';
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './test';
 test.beforeEach(async ({ page }) => loadLegacyFixture(page));
 async function route(page: Page, path: string) {
   await page.goto('./#/' + path);
@@ -99,7 +99,7 @@ test('borrador vende sin transferencias y permite editar/anular gastos', async (
   await page.getByRole('button', { name: 'Nuevo evento' }).click();
   await page.getByLabel('Nombre del evento').fill('Venta en borrador');
   await page.getByRole('button', { name: 'Crear borrador' }).click();
-  await expect(page.locator('.alert.success')).toContainText('Evento creado');
+  await expect(page.locator('.alert.success')).toContainText(/Evento creado|Métodos guardados/);
   await page.getByLabel('Descripción del gasto').fill('Taxi');
   await page.getByLabel('Importe L').fill('100');
   await page.getByRole('button', { name: 'Guardar gasto', exact: true }).click();

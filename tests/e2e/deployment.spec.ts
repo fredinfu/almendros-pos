@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page } from './test';
 async function route(page: Page, path: string) {
   await page.goto('./#/' + path);
   await expect(page.locator('main h1')).toBeVisible();
@@ -23,6 +23,30 @@ async function sticker(page: Page) {
   await page.getByLabel('Presentación de venta').selectOption({ index: 0 });
   await page.getByRole('button', { name: 'Agregar a la venta' }).click();
 }
+test('mercadería por pieza, sugerencias históricas y cuentas al cobrar', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await sticker(page);
+  await page.getByLabel('Pieza 1', { exact: true }).fill('Flor de café');
+  await page.getByRole('button', { name: /^Sumar / }).click();
+  await page.getByLabel('Pieza 2', { exact: true }).fill('Colibrí');
+  await page.getByRole('button', { name: /^Cobrar / }).click();
+  await choose(page, 'Método de pago', /BAC/);
+  await page.getByRole('button', { name: 'Confirmar venta', exact: true }).click();
+  await expect(page.locator('.receipt')).toContainText('Venta registrada');
+  await route(page, 'sales');
+  await page.getByRole('button', { name: 'Ver detalle' }).click();
+  await expect(page.getByText('Pieza 1: Flor de café')).toBeVisible();
+  await expect(page.getByText('Pieza 2: Colibrí')).toBeVisible();
+  await expect(page.getByText('Referencia: BAC')).toBeVisible();
+  await sticker(page);
+  await expect(page.locator('#piece-suggestions option[value="Flor de café"]')).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByLabel('Pieza 1', { exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/merch-mobile.png', fullPage: true });
+});
 test('foto de transferencia: adjuntar/quitar/cámara, pago, respaldo y otra instalación', async ({
   page,
   browser,
@@ -67,6 +91,12 @@ test('foto de transferencia: adjuntar/quitar/cámara, pago, respaldo y otra inst
   const context = await browser.newContext();
   try {
     const other = await context.newPage();
+    await other.addLocatorHandler(
+      other.getByRole('button', { name: 'Continuar para restaurar respaldo' }),
+      async () => {
+        await other.getByRole('button', { name: 'Continuar para restaurar respaldo' }).click();
+      },
+    );
     await other.goto(new URL('./#/sales', page.url()).href);
     await expect(other.locator('tbody')).toContainText('No hay');
     await other.goto(new URL('./#/settings', page.url()).href);
@@ -105,7 +135,7 @@ test('primera instalación y todas las pantallas lazy funcionan offline; conserv
   await page.getByRole('button', { name: 'Nuevo evento' }).click();
   await page.getByLabel('Nombre del evento').fill('Evento offline');
   await page.getByRole('button', { name: 'Crear borrador' }).click();
-  await expect(page.locator('.alert.success')).toContainText('Evento creado');
+  await expect(page.locator('.alert.success')).toContainText(/Evento creado|Métodos guardados/);
   await page.getByLabel('Descripción del gasto').fill('Transporte');
   await page.getByLabel('Importe L').fill('5');
   await page.getByRole('button', { name: 'Guardar gasto', exact: true }).click();
