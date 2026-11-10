@@ -7,13 +7,13 @@
   </button>
   <a routerLink="/dashboard" class="wordmark">ALMENDROS <span>POS</span></a>
   <div class="toolbar-context">
-    <label for="active-event">Evento</label
+    <label for="active-event">Perfil / evento</label
     ><select
       id="active-event"
       [value]="store.eventId()"
       (change)="store.selectEvent($any($event.target).value)"
     >
-      <option value="" [selected]="!store.eventId()">Venta rápida · Sin evento</option>
+      <option value="" [selected]="!store.eventId()">Venta diaria / ambulatoria</option>
       @for (event of store.data().events; track event.id) {
         <option [value]="event.id" [selected]="event.id === store.eventId()">
           {{ event.name }} · {{ statusLabels[event.status] }}

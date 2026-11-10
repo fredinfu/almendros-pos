@@ -120,7 +120,7 @@ it('migra v1 a v2 sin perder las existencias de 250 g ni la historia de 227 g y 
     legacy.close();
     const newRepository = new DexieRepository(upgraded);
     const after = await newRepository.read();
-    expect(upgraded.verno).toBe(3);
+    expect(upgraded.verno).toBe(4);
     expect(after.products.find((p) => p.id === current.productId)?.name).toBe('Blended One');
     expect(after.products.find((p) => p.id === current.productId)?.description).toContain(
       'Geisha proceso honey y Catimor proceso natural',

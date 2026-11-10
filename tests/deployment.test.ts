@@ -124,7 +124,7 @@ it('foto se guarda atómicamente con pago, sobrevive respaldo y no se duplica en
     expect(state.payments[0].evidence).toEqual(evidence);
     const backups = new BackupService(repo),
       backup = await backups.export();
-    expect(backup.schemaVersion).toBe(3);
+    expect(backup.schemaVersion).toBe(4);
     await new BackupService(new DexieRepository(other)).restore(backup);
     expect(await new DexieRepository(other).read()).toEqual(state);
     await expect(sales.checkout({ ...cmd, id: newId(), method: 'cash' })).rejects.toThrow(

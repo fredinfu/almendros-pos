@@ -38,8 +38,8 @@ test('mercadería por pieza, sugerencias históricas y cuentas al cobrar', async
   await expect(page.locator('.receipt')).toContainText('Venta registrada');
   await route(page, 'sales');
   await page.getByRole('button', { name: 'Ver detalle' }).click();
-  await expect(page.getByText('Pieza 1: Flor de café')).toBeVisible();
-  await expect(page.getByText('Pieza 2: Colibrí')).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('Pieza 1: Flor de café')).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('Pieza 2: Colibrí')).toBeVisible();
   await expect(page.getByText('Referencia: BAC')).toBeVisible();
   await sticker(page);
   await expect(page.locator('#piece-suggestions option[value="Flor de café"]')).toHaveCount(1);
@@ -98,7 +98,7 @@ test('foto de transferencia: adjuntar/quitar/cámara, pago, respaldo y otra inst
       },
     );
     await other.goto(new URL('./#/sales', page.url()).href);
-    await expect(other.locator('tbody')).toContainText('No hay');
+    await expect(other.locator('.sales-list')).toContainText('No hay');
     await other.goto(new URL('./#/settings', page.url()).href);
     await other.locator('input[type=file]').setInputFiles(backup!);
     await other.getByLabel('Escribe REEMPLAZAR para confirmar').fill('REEMPLAZAR');
@@ -160,8 +160,8 @@ test('primera instalación y todas las pantallas lazy funcionan offline; conserv
   await page.close();
   const reopened = await context.newPage();
   await reopened.goto(url.replace('#/settings', '#/sales'));
-  await expect(reopened.locator('tbody tr')).toHaveCount(1);
-  await expect(reopened.locator('tbody')).toContainText('60.00');
+  await expect(reopened.locator('.sale-card')).toHaveCount(1);
+  await expect(reopened.locator('.sales-list')).toContainText('60.00');
 });
 test('actualización real del Service Worker conserva datos locales y precios editados', async ({
   page,
@@ -196,8 +196,8 @@ test('actualización real del Service Worker conserva datos locales y precios ed
   await page.getByRole('button', { name: 'Actualizar aplicación', exact: true }).click();
   await expect(page.locator('main h1')).toBeVisible();
   await route(page, 'sales');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await expect(page.locator('tbody')).toContainText('31.00');
+  await expect(page.locator('.sale-card')).toHaveCount(1);
+  await expect(page.locator('.sales-list')).toContainText('31.00');
   await route(page, 'catalog');
   await page.getByLabel('Buscar producto o marca').fill('Producto local persistente');
   await expect(page.locator('.product-group')).toHaveCount(1);

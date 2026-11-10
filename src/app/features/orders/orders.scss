@@ -1,0 +1,67 @@
+.order-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.order-column h2 {
+  font-size: 18px;
+}
+.order-card {
+  padding: 16px;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+.order-card ul {
+  padding-left: 18px;
+}
+.order-card li {
+  margin: 10px 0;
+}
+.order-card small {
+  display: block;
+}
+.order-card .section-heading {
+  align-items: start;
+}
+.order-card h3 {
+  margin: 0 0 12px;
+}
+.order-card p {
+  margin: 6px 0;
+}
+.unpaid {
+  background: #fff1cc;
+  color: #6d4515;
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0008;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.dialog {
+  width: min(650px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  margin: 0;
+}
+.message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  padding: 16px;
+  background: #f6f3ec;
+}
+.account-code {
+  font-size: 1.4rem;
+  user-select: all;
+}
+.evidence {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+}

@@ -351,7 +351,7 @@ it('migración v2 a v3 conserva exactamente catálogo editado, stock, gastos, ve
     .stores(
       Object.fromEntries(
         db.tables
-          .filter((t) => t.name !== 'inventoryCounts')
+          .filter((t) => t.name !== 'inventoryCounts' && t.name !== 'orders')
           .map((t) => [
             t.name,
             [t.schema.primKey.src, ...t.schema.indexes.map((i) => i.src)].join(','),
@@ -365,7 +365,7 @@ it('migración v2 a v3 conserva exactamente catálogo editado, stock, gastos, ve
   try {
     const after = await new DexieRepository(upgraded).read();
     expect(after).toEqual(before);
-    expect(upgraded.verno).toBe(3);
+    expect(upgraded.verno).toBe(4);
   } finally {
     await upgraded.delete();
   }

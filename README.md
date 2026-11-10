@@ -1,3 +1,7 @@
+## Actualización 1.2.0
+
+Venta diaria / ambulatoria, tablero de pedidos con entrega y pago independientes, WhatsApp preparado, tarjetas de ventas y foto de anulación. Consulta [la guía de pedidos](docs/ORDERS.md). Descargar respaldo antes de actualizar; el respaldo nuevo (formato 4) incluye clientes y pedidos, pero no cuentas bancarias locales.
+
 > **v1.1.1 — Fotos de transferencia y GitHub Pages.** Consulta [publicación, instalación en iPad, datos locales y pruebas offline](docs/DEPLOYMENT.md). El catálogo público contiene 10 productos / 27 presentaciones; las instalaciones existentes mantienen su catálogo local. Las fotos de pago se guardan localmente y en el respaldo privado, nunca en GitHub.
 
 > Actualización v1.1: venta rápida sin evento, inventario pendiente de conciliación, catálogo agrupado y corrección de gastos. Antes de actualizar, descarga un JSON en Ajustes y respaldos. Consulta [guía de uso, migración y pruebas](docs/UX_REFINEMENT.md). Las instrucciones antiguas que exigen evento abierto/inventario previo ya no aplican a las ventas rápidas.

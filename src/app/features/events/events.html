@@ -35,6 +35,19 @@
   </section>
 }
 <section class="panel">
+  <h2>Venta diaria / ambulatoria</h2>
+  <p>
+    Vende y recibe pedidos sin crear una feria o evento. Usa las existencias del Almacén General.
+  </p>
+  <div class="actions">
+    <button mat-stroked-button (click)="store.selectEvent('')" routerLink="/pos">
+      Usar venta diaria</button
+    ><button mat-stroked-button (click)="vault.request.set({ eventId: 'daily' })">
+      Configurar venta diaria
+    </button>
+  </div>
+</section>
+<section class="panel">
   <div class="table-scroll">
     <table>
       <thead>

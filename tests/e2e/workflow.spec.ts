@@ -77,7 +77,7 @@ test('flujo completo: stock, evento, 18 ventas, 4 muestras, cierre, respaldo y r
   await prepare(page);
   await sell(page, '18');
   await route(page, 'sales');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('.sale-card')).toHaveCount(1);
   await page.getByRole('button', { name: 'Ver detalle' }).click();
   await expect(page.locator('main')).toContainText('630.00');
   await route(page, 'inventory');
@@ -128,8 +128,8 @@ test('PWA: recarga offline y venta persistente sin red', async ({ page, context 
   await expect(page.locator('main h1')).toContainText('Feria de prueba');
   await expect(page.locator('#active-event option:checked')).toContainText('Feria de prueba');
   await route(page, 'sales');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await expect(page.locator('tbody')).toContainText('70.00');
+  await expect(page.locator('.sale-card')).toHaveCount(1);
+  await expect(page.locator('.sales-list')).toContainText('70.00');
 });
 
 test('iPad horizontal y móvil: navegación y catálogo accesibles', async ({ page }) => {

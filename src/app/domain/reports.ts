@@ -69,6 +69,9 @@ export function eventReport(state: State, eventId: string) {
     byCategory: group('categoryNameSnapshot'),
     payments,
     pendingRefunds,
+    receivables: state.sales
+      .filter((s) => (s.eventId ?? '') === eventId && s.status === 'pending')
+      .reduce((n, s) => n + s.totalMinor, 0),
     expectedCash:
       (event?.openingCashMinor ?? 0) + payments[0]!.totalMinor + pendingCash - cashExpenses,
     remaining: event

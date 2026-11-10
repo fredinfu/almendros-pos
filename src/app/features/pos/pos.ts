@@ -1,3 +1,5 @@
+import { DAILY_PROFILE, normalizePhone } from '../../domain/communication';
+import { Router } from '@angular/router';
 import {
   EventPaymentsService,
   LocalAccount,
@@ -5,7 +7,7 @@ import {
 } from '../../core/event-payments.service';
 import { preparePaymentPhoto } from '../../shared/payment-photo';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AppStore } from '../../core/app.store';
 import { UI_IMPORTS } from '../../shared/ui';
@@ -37,6 +39,7 @@ interface CartLine {
 })
 export class PosPage {
   readonly store = inject(AppStore);
+  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   readonly search = signal('');
   readonly category = signal(
@@ -77,17 +80,17 @@ export class PosPage {
     return a ? { ...a, name: PAYMENT_CHOICES.find((p) => p.method === a.method)!.name } : undefined;
   });
   accepts(method: string): boolean {
-    return !this.store.eventId() || !!this.accounts()?.some((a) => a.method === method);
+    return !!this.accounts()?.some((a) => a.method === method);
   }
   async beginPayment(): Promise<void> {
-    if (this.store.eventId()) {
+    {
       try {
-        this.accounts.set(await this.vault.read(this.store.eventId()));
+        this.accounts.set(await this.vault.read(this.store.eventId() || DAILY_PROFILE));
       } catch {
         this.accounts.set(undefined);
       }
       if (!this.accounts()) {
-        this.vault.request.set({ eventId: this.store.eventId() });
+        this.vault.request.set({ eventId: this.store.eventId() || DAILY_PROFILE });
         return;
       }
     }
@@ -138,6 +141,49 @@ export class PosPage {
           }
         : {}),
     };
+  }
+  readonly orderMode = signal(false);
+  readonly customerForm = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(200)]],
+    phone: ['', Validators.required],
+    fulfillment: ['pickup'],
+    address: [''],
+    notes: [''],
+  });
+  async saveOrder(): Promise<void> {
+    if (this.store.busy() || !this.cart().length || this.customerForm.invalid) return;
+    const ok = await this.store.run(async () => {
+      if (!(await this.vault.read(this.store.eventId() || DAILY_PROFILE))) {
+        this.vault.request.set({ eventId: this.store.eventId() || DAILY_PROFILE });
+        throw new Error('Configura primero el perfil y vuelve a guardar el pedido.');
+      }
+      const c = this.customerForm.getRawValue();
+      await this.store.orders.create({
+        id: this.commandId,
+        ...(this.store.eventId() ? { eventId: this.store.eventId() } : {}),
+        customer: {
+          ...c,
+          phone: normalizePhone(c.phone),
+          fulfillment: c.fulfillment as 'pickup' | 'delivery',
+        },
+        lines: this.cart().map((l) => ({
+          variantId: l.variantId,
+          quantity: l.quantity,
+          expectedPriceMinor: l.expectedPriceMinor,
+          ...(l.coffee ? { grindOption: l.grindOption } : {}),
+          ...(l.pieceDescriptions ? { pieceDescriptions: l.pieceDescriptions } : {}),
+        })),
+        discountMinor: parseMoney(this.form.controls.discount.value || '0'),
+      });
+    }, 'Pedido abierto guardado. Todavía no se ha cobrado.');
+    if (ok) {
+      this.cart.set([]);
+      this.commandId = newId();
+      this.customerForm.reset({ fulfillment: 'pickup' });
+      this.orderMode.set(false);
+      this.form.reset({ discount: '0', method: 'cash' });
+      await this.router.navigate(['/orders']);
+    }
   }
   readonly paying = signal(false);
   readonly lastReceipt = signal('');
@@ -312,7 +358,7 @@ export class PosPage {
       this.vault.revision();
       this.accounts.set(undefined);
       void this.vault
-        .read(id)
+        .read(id || DAILY_PROFILE)
         .then((accounts) => {
           if (this.store.eventId() === id) this.accounts.set(accounts);
         })
@@ -423,8 +469,8 @@ export class PosPage {
       return;
     const ok = await this.store.run(async () => {
       const v = this.form.getRawValue();
-      if (this.store.eventId()) {
-        const accounts = await this.vault.read(this.store.eventId());
+      {
+        const accounts = await this.vault.read(this.store.eventId() || DAILY_PROFILE);
         if (!accounts || (v.method !== 'cash' && !accounts.some((a) => a.method === v.method)))
           throw new Error('Configura o selecciona un método habilitado para este evento.');
       }

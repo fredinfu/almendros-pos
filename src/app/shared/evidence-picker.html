@@ -1,0 +1,54 @@
+<h3>{{ label() }} (opcional)</h3>
+<div class="actions">
+  <button
+    type="button"
+    mat-stroked-button
+    [disabled]="busy() || disabled()"
+    (click)="camera.click()"
+  >
+    Tomar foto
+  </button>
+  <button type="button" mat-stroked-button [disabled]="busy() || disabled()" (click)="file.click()">
+    Adjuntar foto
+  </button>
+  @if (photo()) {
+    <button
+      type="button"
+      mat-button
+      [disabled]="busy() || disabled()"
+      (click)="photo.set(undefined)"
+    >
+      Quitar foto
+    </button>
+  }
+</div>
+<input
+  #camera
+  type="file"
+  accept="image/*"
+  capture="environment"
+  hidden
+  [attr.aria-label]="'Tomar ' + label()"
+  (change)="attach($event)"
+/>
+<input
+  #file
+  type="file"
+  accept="image/*"
+  hidden
+  [attr.aria-label]="'Adjuntar ' + label()"
+  (change)="attach($event)"
+/>
+@if (busy()) {
+  <p role="status">Preparando foto…</p>
+}
+@if (error) {
+  <p role="alert">{{ error }}</p>
+}
+@if (photo(); as p) {
+  <img
+    [src]="p.dataUrl"
+    [alt]="label()"
+    style="display: block; max-width: 100%; max-height: 200px; object-fit: contain; margin: 12px 0"
+  />
+}

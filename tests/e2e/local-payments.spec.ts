@@ -6,17 +6,26 @@ test('primer evento, cuentas cifradas locales, edición y separación por evento
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('./#/pos');
-  await expect(page.getByRole('heading', { name: 'Tu primer evento' })).toBeVisible();
-  await page.getByLabel('Nombre del evento', { exact: true }).fill('Evento de prueba local');
+  await expect(
+    page.getByRole('heading', { name: 'Configurar venta diaria / ambulatoria' }),
+  ).toBeVisible();
+  await page
+    .getByLabel('Nombre del negocio / perfil', { exact: true })
+    .fill('Perfil de prueba local');
   await page.getByLabel('BAC', { exact: true }).check();
   await page.getByRole('button', { name: 'Guardar métodos' }).click();
   await expect(page.getByRole('dialog')).toContainText('Completa cuenta');
   await page.getByLabel('Cuenta o usuario BAC').fill('DEMO-CUENTA');
   await page.getByLabel('Titular BAC').fill('Titular de prueba');
+  await page.getByLabel('Ficohsa', { exact: true }).check();
+  await expect(page.getByLabel('Titular Ficohsa')).toHaveValue('Titular de prueba');
+  await page.getByLabel('Titular Ficohsa').fill('Titular diferente');
+  await expect(page.getByLabel('Titular BAC')).toHaveValue('Titular de prueba');
+  await page.getByLabel('Ficohsa', { exact: true }).uncheck();
   await page.getByRole('button', { name: 'Guardar métodos' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.reload();
-  await expect(page.locator('main h1')).toHaveText('Evento de prueba local');
+  await expect(page.locator('main h1')).toHaveText('Venta diaria / ambulatoria');
   await page.getByLabel('Buscar producto o presentación').fill('Stickers');
   await page.locator('.product-tile').click();
   await page.getByLabel('Presentación de venta').selectOption({ index: 1 });

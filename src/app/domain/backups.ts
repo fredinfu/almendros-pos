@@ -4,7 +4,7 @@ import { State, stateSchema, mustFind, requireRule, stock, tableNames, now } fro
 import { eventReport } from './reports';
 
 export const backupSchema = z.strictObject({
-  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   appVersion: z.string().min(1),
   exportedAt: z.iso.datetime(),
   deviceInstallId: z.uuid(),
@@ -149,7 +149,33 @@ export function validateState(input: unknown): State {
     const event = sale.eventId ? mustFind(state.events, sale.eventId) : undefined;
     const items = state.items.filter((i) => i.saleId === sale.id);
     const payments = state.payments.filter((p) => p.saleId === sale.id);
-    requireRule(items.length > 0 && payments.length === 1, 'Venta sin detalles o pago único.');
+    const unpaid = payments.length === 0;
+    requireRule(items.length > 0 && payments.length <= 1, 'Venta sin detalles o pago duplicado.');
+    if (unpaid)
+      requireRule(
+        sale.orderId &&
+          sale.totalPaidMinor === 0 &&
+          sale.changeMinor === 0 &&
+          (sale.status === 'pending' ||
+            (sale.status === 'voided' && sale.refundStatus === 'completed')),
+        'Venta sin pago inválida.',
+      );
+    else requireRule(sale.status !== 'pending', 'Pedido pendiente con pago registrado.');
+    if (sale.orderId) {
+      const order = mustFind(state.orders, sale.orderId);
+      requireRule(
+        order.saleId === sale.id &&
+          order.eventId === sale.eventId &&
+          order.totalMinor === sale.totalMinor &&
+          order.discountMinor === sale.discountMinor,
+        'Pedido y venta no coinciden.',
+      );
+      requireRule(
+        sale.status !== 'pending' ||
+          (order.status === 'delivered' && !sale.refundStatus && !sale.voidedAt && !sale.paidAt),
+        'Entrega pendiente inconsistente.',
+      );
+    }
     requireRule(
       sale.subtotalMinor === items.reduce((n, i) => n + i.unitPriceMinor * i.quantity, 0) &&
         sale.discountMinor === items.reduce((n, i) => n + i.lineDiscountMinor, 0) &&
@@ -157,19 +183,21 @@ export function validateState(input: unknown): State {
         sale.totalMinor === items.reduce((n, i) => n + i.lineTotalMinor, 0),
       'Totales de venta inconsistentes.',
     );
-    const payment = payments[0]!;
-    requireRule(
-      payment.amountMinor === sale.totalMinor &&
-        sale.totalPaidMinor === sale.totalMinor &&
-        sale.changeMinor === (payment.changeMinor ?? 0) &&
-        (payment.receivedMinor ?? payment.amountMinor) - (payment.changeMinor ?? 0) ===
-          payment.amountMinor,
-      'Pago inconsistente.',
-    );
-    requireRule(
-      payment.method === 'cash' || (payment.changeMinor ?? 0) === 0,
-      'Cambio no válido para pago electrónico.',
-    );
+    if (!unpaid) {
+      const payment = payments[0]!;
+      requireRule(
+        payment.amountMinor === sale.totalMinor &&
+          sale.totalPaidMinor === sale.totalMinor &&
+          sale.changeMinor === (payment.changeMinor ?? 0) &&
+          (payment.receivedMinor ?? payment.amountMinor) - (payment.changeMinor ?? 0) ===
+            payment.amountMinor,
+        'Pago inconsistente.',
+      );
+      requireRule(
+        payment.method === 'cash' || (payment.changeMinor ?? 0) === 0,
+        'Cambio no válido para pago electrónico.',
+      );
+    }
     requireRule(
       sale.status !== 'voided' || (sale.voidReason && sale.voidedAt && sale.refundStatus),
       'Anulación incompleta.',
@@ -196,7 +224,7 @@ export function validateState(input: unknown): State {
         );
         requireRule(
           item.inventoryStatus !== 'pending' ||
-            (sale.status === 'completed' && !count && event?.status !== 'closed'),
+            (sale.status !== 'voided' && !count && event?.status !== 'closed'),
           'Pendiente inconsistente.',
         );
         requireRule(
@@ -286,6 +314,72 @@ export function validateState(input: unknown): State {
       }
     }
   }
+  for (const order of state.orders) {
+    if (order.eventId) mustFind(state.events, order.eventId);
+    for (const line of order.lines) mustFind(state.variants, line.variantId);
+    requireRule(
+      Number.isSafeInteger(order.subtotalMinor) &&
+        order.subtotalMinor ===
+          order.lines.reduce((n, l) => n + l.quantity * l.unitPriceMinor, 0) &&
+        order.discountMinor <= order.subtotalMinor &&
+        order.totalMinor === order.subtotalMinor - order.discountMinor,
+      'Total de pedido inconsistente.',
+    );
+    requireRule(order.status !== 'packed' || order.packedAt, 'Pedido empacado sin fecha.');
+    requireRule(
+      order.status !== 'delivered' || (order.packedAt && order.deliveredAt && order.saleId),
+      'Entrega incompleta.',
+    );
+    requireRule(
+      order.status !== 'cancelled' || (order.cancelReason && order.cancelledAt),
+      'Cancelación de pedido incompleta.',
+    );
+    if (order.saleId) {
+      const sale = mustFind(state.sales, order.saleId);
+      requireRule(
+        sale.orderId === order.id && (order.status === 'cancelled') === (sale.status === 'voided'),
+        'Estado de pedido y venta inconsistente.',
+      );
+      const items = state.items.filter((i) => i.saleId === sale.id);
+      const expected = order.lines
+        .map((l) =>
+          JSON.stringify([
+            l.variantId,
+            l.quantity,
+            l.unitPriceMinor,
+            l.productNameSnapshot,
+            l.variantNameSnapshot,
+            l.grindOption,
+            l.pieceDescriptions,
+          ]),
+        )
+        .sort();
+      const actual = items
+        .map((i) =>
+          JSON.stringify([
+            i.variantId,
+            i.quantity,
+            i.unitPriceMinor,
+            i.productNameSnapshot,
+            i.variantNameSnapshot,
+            i.grindOptionSnapshot,
+            i.pieceDescriptions,
+          ]),
+        )
+        .sort();
+      requireRule(
+        JSON.stringify(actual) === JSON.stringify(expected),
+        'Productos del pedido y venta no coinciden.',
+      );
+    }
+    if (order.eventId && mustFind(state.events, order.eventId).status === 'closed')
+      requireRule(
+        order.status === 'cancelled' ||
+          (order.status === 'delivered' &&
+            state.sales.some((s) => s.id === order.saleId && s.status === 'completed')),
+        'Evento cerrado con pedido pendiente.',
+      );
+  }
   const resolvedItems = new Set<string>();
   for (const count of state.inventoryCounts) {
     mustFind(state.variants, count.variantId);
@@ -324,8 +418,8 @@ export class BackupService {
   async export(): Promise<Backup> {
     const state = await this.repository.read();
     return {
-      schemaVersion: 3,
-      appVersion: '1.1.1',
+      schemaVersion: 4,
+      appVersion: '1.2.0',
       exportedAt: now(),
       deviceInstallId: state.settings[0]!.deviceInstallId,
       data: state,

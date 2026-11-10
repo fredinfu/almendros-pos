@@ -1,3 +1,7 @@
+## Venta diaria y pedidos (2026-11-10)
+
+Venta diaria usa eventId ausente y General; evita crear una feria permanente y conserva ventas rápidas históricas. Cuentas/perfil de comunicación usan clave local daily y los eventos usan su UUID en la bóveda. WhatsApp usa enlace oficial con texto codificado y confirmación manual en la app externa. Para entregas impagas, se reutiliza el libro de ventas/inventario con status pending y cero pagos; reportes solo incluyen completed. Preserva conteos/reversas existentes y evita dos fuentes de stock. Fotos de anulación comparten compresión/validación de fotos de pago.
+
 ## Métodos privados por evento — 2026-11-07
 
 Se retiran todas las cuentas precargadas. Configuración explícita por evento: efectivo siempre y BAC/Ficohsa/Atlántida/Kash opcionales con cuenta/usuario y titular obligatorios al habilitar. Primer ingreso sin eventos abre diálogo; permite continuar para restaurar respaldo. Se exige configurar antes de abrir evento o cobrar en él. Eventos existentes conservados. Bóveda separada IndexedDB AES-GCM con clave no exportable del dispositivo, IV aleatorio y eventId autenticado. No se incluye en JSON ni en Git ni se sincroniza: hay que reingresar cuentas en otro navegador. El cifrado en reposo no protege frente a alguien con acceso al navegador desbloqueado.

@@ -135,11 +135,22 @@ export const countSchema = z.strictObject({
   pendingItemIds: z.array(id),
   occurredAt: date,
 });
+export const paymentEvidenceSchema = z.strictObject({
+  dataUrl: z
+    .string()
+    .max(1400000)
+    .regex(/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]*={0,2}$/),
+  width: z.number().int().min(1).max(1600),
+  height: z.number().int().min(1).max(1600),
+});
+export type PaymentEvidence = z.infer<typeof paymentEvidenceSchema>;
 export const saleSchema = z.strictObject({
   id,
   eventId: id.optional(),
   receiptNumber: text,
-  status: z.enum(['completed', 'voided']),
+  status: z.enum(['completed', 'voided', 'pending']),
+  orderId: id.optional(),
+  paidAt: date.optional(),
   subtotalMinor: money,
   discountMinor: money,
   totalMinor: money,
@@ -149,6 +160,7 @@ export const saleSchema = z.strictObject({
   soldAt: date,
   voidedAt: date.optional(),
   voidReason: text.optional(),
+  voidEvidence: paymentEvidenceSchema.optional(),
   refundStatus: z.enum(['pending', 'completed']).optional(),
   refundedAt: date.optional(),
   createdAt: date,
@@ -175,15 +187,6 @@ export const itemSchema = z.strictObject({
   reconciliationId: id.optional(),
   inventoryLocationId: id.optional(),
 });
-export const paymentEvidenceSchema = z.strictObject({
-  dataUrl: z
-    .string()
-    .max(1400000)
-    .regex(/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]*={0,2}$/),
-  width: z.number().int().min(1).max(1600),
-  height: z.number().int().min(1).max(1600),
-});
-export type PaymentEvidence = z.infer<typeof paymentEvidenceSchema>;
 export const paymentSchema = z.strictObject({
   id,
   saleId: id,
@@ -216,8 +219,54 @@ export const settingsSchema = z.strictObject({
   backupReminderDays: z.number().int().min(1).max(365),
 });
 
+export const customerSchema = z
+  .strictObject({
+    name: text,
+    phone: z.string().regex(/^[1-9][0-9]{7,14}$/),
+    fulfillment: z.enum(['pickup', 'delivery']),
+    address: note,
+    notes: note,
+  })
+  .refine(
+    (c) => c.fulfillment !== 'delivery' || !!c.address.trim(),
+    'Indica la dirección de entrega.',
+  );
+export const orderLineSchema = z.strictObject({
+  variantId: id,
+  quantity,
+  unitPriceMinor: money,
+  productNameSnapshot: text,
+  variantNameSnapshot: text,
+  skuSnapshot: text,
+  brandNameSnapshot: text,
+  categoryNameSnapshot: text,
+  unitCostMinor: money.optional(),
+  trackInventorySnapshot: z.boolean(),
+  grindOption: text.optional(),
+  pieceDescriptions: z.array(z.string().trim().max(120)).max(1000).optional(),
+});
+export const orderSchema = z.strictObject({
+  id,
+  eventId: id.optional(),
+  customer: customerSchema,
+  lines: z.array(orderLineSchema).min(1).max(200),
+  subtotalMinor: money,
+  discountMinor: money,
+  totalMinor: money,
+  status: z.enum(['open', 'packed', 'delivered', 'cancelled']),
+  saleId: id.optional(),
+  packedAt: date.optional(),
+  deliveredAt: date.optional(),
+  cancelledAt: date.optional(),
+  cancelReason: text.optional(),
+  cancelEvidence: paymentEvidenceSchema.optional(),
+  ...timestamps,
+});
+export type Order = z.infer<typeof orderSchema>;
+export type Customer = z.infer<typeof customerSchema>;
 export const stateSchema = z.strictObject({
   inventoryCounts: z.array(countSchema).default([]),
+  orders: z.array(orderSchema).default([]),
   brands: z.array(brandSchema),
   categories: z.array(categorySchema),
   products: z.array(productSchema),
@@ -244,6 +293,7 @@ export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type TableName = keyof State;
 export const tableNames: TableName[] = [
+  'orders',
   'inventoryCounts',
   'brands',
   'categories',
@@ -259,6 +309,7 @@ export const tableNames: TableName[] = [
   'settings',
 ];
 export const emptyState = (): State => ({
+  orders: [],
   inventoryCounts: [],
   brands: [],
   categories: [],

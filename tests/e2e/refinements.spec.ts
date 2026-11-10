@@ -16,7 +16,7 @@ async function pay(page: Page) {
 }
 test('venta rápida, precio inline, reportes y persistencia sin evento', async ({ page }) => {
   await route(page, 'pos');
-  await expect(page.locator('main h1')).toHaveText('Venta rápida');
+  await expect(page.locator('main h1')).toHaveText('Venta diaria / ambulatoria');
   await page.getByRole('button', { name: 'Bebidas', exact: true }).click();
   await page.locator('.product-tile').filter({ hasText: 'Café filtrado' }).click();
   await expect(page.getByRole('dialog')).toContainText('Configurar precio');
@@ -25,8 +25,8 @@ test('venta rápida, precio inline, reportes y persistencia sin evento', async (
   await expect(page.locator('.cart-line')).toContainText('45.00');
   await pay(page);
   await route(page, 'sales');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await expect(page.locator('tbody')).toContainText('Venta rápida');
+  await expect(page.locator('.sale-card')).toHaveCount(1);
+  await expect(page.locator('.sales-list')).toContainText('Venta diaria / ambulatoria');
   await route(page, 'reports');
   await expect(page.locator('main')).toContainText('45.00');
   await page.reload();

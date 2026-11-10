@@ -28,6 +28,7 @@ export class CatalogService {
       requireRule(
         !state.inventoryCounts.some((c) => c.variantId === id) &&
           !state.movements.some((m) => m.variantId === id) &&
+          !state.orders.some((o) => o.lines.some((l) => l.variantId === id)) &&
           !state.items.some((i) => i.variantId === id),
         'Esta presentación tiene movimientos o ventas. Desactívala para conservar el historial.',
       );
@@ -49,6 +50,7 @@ export class CatalogService {
       const ids = new Set(state.variants.filter((v) => v.productId === id).map((v) => v.id));
       requireRule(
         !state.movements.some((m) => ids.has(m.variantId)) &&
+          !state.orders.some((o) => o.lines.some((l) => ids.has(l.variantId))) &&
           !state.items.some((i) => ids.has(i.variantId)) &&
           !state.inventoryCounts.some((c) => ids.has(c.variantId)),
         'Este producto tiene historial. Desactívalo para conservarlo.',
@@ -146,6 +148,7 @@ export class CatalogService {
         requireRule(
           old.trackInventory === variant.trackInventory ||
             (!state.movements.some((m) => m.variantId === old.id) &&
+              !state.orders.some((o) => o.lines.some((l) => l.variantId === old.id)) &&
               !state.items.some((i) => i.variantId === old.id) &&
               !state.inventoryCounts.some((c) => c.variantId === old.id)),
           'No cambie control de inventario después de registrar movimientos.',

@@ -2,3 +2,58 @@
   overflow-wrap: anywhere;
   font-size: 13px;
 }
+
+.sales-list {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+}
+.sale-card p {
+  margin: 4px 0;
+}
+.sale-card.voided {
+  border-left: 4px solid #a54d32;
+}
+.purchase-items {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.purchase-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e4ded6;
+}
+.purchase-items small {
+  display: block;
+}
+.purchase-items span {
+  white-space: nowrap;
+}
+.event-totals {
+  margin-top: 24px;
+}
+.detail-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0008;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.detail-dialog {
+  width: min(850px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  margin: 0;
+}
+.void-photo {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+}

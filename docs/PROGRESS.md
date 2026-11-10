@@ -1,3 +1,11 @@
+# v1.2.0 — Venta diaria, pedidos y tarjetas de ventas — 2026-11-10
+
+Venta diaria independiente de eventos; perfil de comunicación/cuentas cifrado local. Primera instalación propone perfil diario, WhatsApp público precargado, titular sugerido editable. Pedidos con cliente/teléfono/pickup/delivery, estados abiertos/empacados/entregados y pago separado. Entrega sin pago autorizada: stock sale al entregar o cobrar por primera vez; cobro posterior sin duplicación. Precios de pedido conservados. WhatsApp con vista previa y enlace, nunca envío automático. Vista Ventas en tarjetas, detalle modal, totales netos por evento/perfil; motivo y foto opcional en anulación.
+
+IndexedDB v4 agrega orders sin reescritura. Backup formato 4 acepta 1–4, incluye clientes/pedidos/fotos; cuentas y perfil de comunicación fuera del backup en la bóveda local. Guía completa en [ORDERS.md](ORDERS.md).
+
+Verificación de dominio: 71 pruebas unitarias/integración; incluye migración v3, rollback por stock, concurrencia entrega/cobro, reconciliación de entrega impaga, precios históricos, anulación y restauración. Sin datos de operación reales en pruebas.
+
 Verificación de esta actualización: 60/60 pruebas unitarias, 14/14 escenarios de navegador, lint y build correctos. Incluye cifrado local persistente, separación por evento, exclusión del respaldo, descripciones de piezas y copia de una cuenta ficticia.
 
 ## Métodos privados por evento — 2026-11-07

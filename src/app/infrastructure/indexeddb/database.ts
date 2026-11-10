@@ -31,5 +31,6 @@ export function createDatabase(name = 'almendros-pos'): Dexie {
     });
   // Additive only: preserve every existing catalog, sale and ledger record.
   database.version(3).stores({ inventoryCounts: 'id,variantId,locationId' });
+  database.version(4).stores({ orders: 'id,eventId,status,saleId' });
   return database;
 }

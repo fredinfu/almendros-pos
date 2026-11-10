@@ -22,9 +22,10 @@ export class App implements OnInit {
     { path: '/catalog', name: 'Productos', code: '03' },
     { path: '/inventory', name: 'Inventario', code: '04' },
     { path: '/events', name: 'Eventos', code: '05' },
-    { path: '/sales', name: 'Ventas', code: '06' },
-    { path: '/reports', name: 'Reportes', code: '07' },
-    { path: '/settings', name: 'Ajustes y respaldos', code: '08' },
+    { path: '/orders', name: 'Pedidos', code: '06' },
+    { path: '/sales', name: 'Ventas', code: '07' },
+    { path: '/reports', name: 'Reportes', code: '08' },
+    { path: '/settings', name: 'Ajustes y respaldos', code: '09' },
   ];
   ngOnInit(): void {
     void this.store.initialize();

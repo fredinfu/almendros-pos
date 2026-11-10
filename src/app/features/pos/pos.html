@@ -1,7 +1,10 @@
 <div class="page-heading">
   <div>
     <div class="eyebrow">PUNTO DE VENTA</div>
-    <h1>{{ store.event()?.name || 'Venta rápida' }}</h1>
+    <h1>{{ store.event()?.name || 'Venta diaria / ambulatoria' }}</h1>
+    <button mat-button (click)="vault.request.set({ eventId: store.eventId() || 'daily' })">
+      Configurar perfil y métodos
+    </button>
   </div>
   <a mat-button routerLink="/sales">Historial de ventas →</a>
 </div>
@@ -158,7 +161,39 @@
     @if (pending()) {
       <p class="subtle" role="status">Inventario pendiente de conciliar</p>
     }
-    <form [formGroup]="form" (ngSubmit)="checkout()">
+    @if (orderMode()) {
+      <section [formGroup]="customerForm" class="order-customer">
+        <h3>Datos del pedido</h3>
+        <mat-form-field class="full-width"
+          ><mat-label>Nombre del cliente</mat-label
+          ><input matInput formControlName="name" maxlength="200"
+        /></mat-form-field>
+        <mat-form-field class="full-width"
+          ><mat-label>WhatsApp del cliente</mat-label
+          ><input matInput formControlName="phone" inputmode="tel" maxlength="25" /><mat-hint
+            >8 dígitos = Honduras; otros países incluyen código.</mat-hint
+          ></mat-form-field
+        >
+        <mat-form-field class="full-width"
+          ><mat-label>Tipo de entrega</mat-label
+          ><mat-select formControlName="fulfillment"
+            ><mat-option value="pickup">Pickup</mat-option
+            ><mat-option value="delivery">Delivery</mat-option></mat-select
+          ></mat-form-field
+        >
+        <mat-form-field class="full-width"
+          ><mat-label>Dirección / punto de entrega</mat-label
+          ><textarea matInput formControlName="address" maxlength="500"></textarea
+          ><mat-hint>Obligatoria para delivery.</mat-hint></mat-form-field
+        >
+        <mat-form-field class="full-width"
+          ><mat-label>Indicaciones del pedido</mat-label
+          ><textarea matInput formControlName="notes" maxlength="2000"></textarea>
+        </mat-form-field>
+        <p>Abierto no reserva stock. Se descuenta al entregar o cobrar, una sola vez.</p>
+      </section>
+    }
+    <form [formGroup]="form" (ngSubmit)="!orderMode() && checkout()">
       <dl class="summary-list">
         <dt>Subtotal</dt>
         <dd>{{ store.money(subtotal()) }}</dd>
@@ -170,7 +205,22 @@
       <div class="total">
         <span>Total</span><strong>{{ store.money(total()) }}</strong>
       </div>
-      @if (paying()) {
+      @if (orderMode()) {
+        <button
+          type="button"
+          mat-flat-button
+          class="checkout"
+          (click)="saveOrder()"
+          [disabled]="
+            store.busy() || customerForm.invalid || !cart().length || discount() < 0 || total() < 0
+          "
+        >
+          Guardar pedido abierto
+        </button>
+        <button type="button" mat-button (click)="orderMode.set(false)">
+          Volver a venta directa
+        </button>
+      } @else if (paying()) {
         <div class="payment">
           <h3>Revisar y cobrar</h3>
           <mat-form-field class="full-width"
@@ -306,6 +356,15 @@
           (click)="beginPayment()"
         >
           Cobrar {{ store.money(total()) }}
+        </button>
+        <button
+          type="button"
+          mat-stroked-button
+          class="checkout"
+          [disabled]="!cart().length || store.busy()"
+          (click)="orderMode.set(true)"
+        >
+          Crear pedido para seguimiento
         </button>
       }
     </form>

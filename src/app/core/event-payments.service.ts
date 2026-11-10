@@ -1,17 +1,13 @@
 import { Injectable, signal } from '@angular/core';
 import Dexie, { Table } from 'dexie';
 
-export const PAYMENT_CHOICES = [
-  { method: 'bac', name: 'BAC' },
-  { method: 'ficohsa', name: 'Ficohsa' },
-  { method: 'atlantida', name: 'Banco Atlántida' },
-  { method: 'kash', name: 'Kash' },
-];
-export interface LocalAccount {
-  method: string;
-  code: string;
-  holder: string;
-}
+import {
+  BusinessProfile,
+  LocalAccount,
+  defaultProfile,
+  profileSchema,
+} from '../domain/communication';
+export { PAYMENT_CHOICES, type LocalAccount } from '../domain/communication';
 interface Sealed {
   id: string;
   iv: Uint8Array<ArrayBuffer>;
@@ -43,6 +39,9 @@ export class EventPaymentsService {
     });
   }
   async read(eventId: string): Promise<LocalAccount[] | undefined> {
+    return (await this.readProfile(eventId))?.accounts;
+  }
+  async readProfile(eventId: string): Promise<BusinessProfile | undefined> {
     if (!eventId) return undefined;
     const sealed = await this.records.get(eventId);
     if (!sealed) return undefined;
@@ -53,26 +52,23 @@ export class EventPaymentsService {
       key.key,
       sealed.data,
     );
-    return JSON.parse(new TextDecoder().decode(bytes)) as LocalAccount[];
+    const value: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    return profileSchema.parse(
+      Array.isArray(value) ? { ...defaultProfile(), accounts: value } : value,
+    );
   }
-  async save(eventId: string, accounts: LocalAccount[]): Promise<void> {
-    if (
-      accounts.some(
-        (a) =>
-          !PAYMENT_CHOICES.some((p) => p.method === a.method) ||
-          !a.code.trim() ||
-          a.code.length > 100 ||
-          !a.holder.trim() ||
-          a.holder.length > 150,
-      )
-    )
+  async save(eventId: string, accounts: LocalAccount[], details = defaultProfile()): Promise<void> {
+    if (accounts.some((a) => !a.code.trim() || !a.holder.trim()))
       throw new Error('Completa cuenta o usuario y titular de cada método habilitado.');
+    if (!/^[1-9][0-9]{7,14}$/.test(details.whatsapp))
+      throw new Error('Indica el WhatsApp del negocio con código de país.');
+    const profile = profileSchema.parse({ ...details, accounts });
     const key = await this.key();
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const data = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(eventId) },
       key,
-      new TextEncoder().encode(JSON.stringify(accounts)),
+      new TextEncoder().encode(JSON.stringify(profile)),
     );
     await this.records.put({ id: eventId, iv, data });
     this.revision.update((n) => n + 1);

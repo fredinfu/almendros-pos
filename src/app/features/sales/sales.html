@@ -21,139 +21,204 @@
       >Todos los eventos</mat-checkbox
     >
   </div>
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha y evento</th>
-          <th>Recibo</th>
-          <th>Método</th>
-          <th>Total</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (sale of rows(); track sale.id) {
-          <tr>
-            <td>
-              {{ store.date(sale.soldAt) }}<small>{{ eventName(sale.eventId) }}</small>
-            </td>
-            <td>{{ sale.receiptNumber.slice(0, 20) }}…</td>
-            <td>{{ method(sale.id) }}</td>
-            <td>{{ store.money(sale.totalMinor) }}</td>
-            <td>{{ statusLabels[sale.status] }}</td>
-            <td><button mat-button (click)="selectedId.set(sale.id)">Ver detalle</button></td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="6" class="empty">No hay ventas para este filtro.</td>
-          </tr>
+</section>
+<div class="sales-list">
+  @for (sale of rows(); track sale.id) {
+    <article class="panel sale-card" [class.voided]="sale.status === 'voided'">
+      <header class="section-heading">
+        <div>
+          <strong>{{ store.date(sale.paidAt ?? sale.soldAt) }}</strong>
+          <p>{{ eventName(sale.eventId) }} · {{ method(sale.id) }}</p>
+          @if (customer(sale.id); as customer) {
+            <p>
+              {{ customer.name }} · {{ customer.fulfillment === 'pickup' ? 'Pickup' : 'Delivery' }}
+            </p>
+          }
+        </div>
+        <span class="badge">{{ statusLabels[sale.status] }}</span>
+      </header>
+      <ul class="purchase-items">
+        @for (item of saleItems(sale.id); track item.id) {
+          <li>
+            <div>
+              <strong>{{ item.quantity }} × {{ item.productNameSnapshot }}</strong
+              ><small>{{ item.variantNameSnapshot }} {{ item.grindOptionSnapshot }}</small>
+              @for (description of item.pieceDescriptions ?? []; track $index) {
+                @if (description) {
+                  <small>Pieza {{ $index + 1 }}: {{ description }}</small>
+                }
+              }
+            </div>
+            <span>{{ store.money(item.lineTotalMinor) }}</span>
+          </li>
         }
-      </tbody>
-    </table>
+      </ul>
+      @if (sale.discountMinor) {
+        <p>Descuento incluido: {{ store.money(sale.discountMinor) }}</p>
+      }
+      @if (sale.voidEvidence; as evidence) {
+        <details>
+          <summary>Ver foto de anulación</summary>
+          <img class="void-photo" [src]="evidence.dataUrl" alt="Foto de anulación guardada" />
+        </details>
+      }
+      @if (sale.status === 'voided') {
+        <p class="alert warning">Anulada: {{ sale.voidReason }}</p>
+      }
+      <footer class="section-heading">
+        <strong>Total {{ store.money(sale.totalMinor) }}</strong
+        ><button mat-stroked-button (click)="show(sale.id)">Ver detalle</button>
+      </footer>
+    </article>
+  } @empty {
+    <p class="empty">No hay ventas para este filtro.</p>
+  }
+</div>
+<section class="panel event-totals" aria-label="Totales de ventas">
+  <h2>{{ allEvents() ? 'Totales por evento y venta diaria' : 'Total del evento / perfil' }}</h2>
+  <p>
+    Ventas completadas; excluye anulaciones y pedidos sin cobrar. Este total no cambia al filtrar
+    por estado.
+  </p>
+  @for (group of totals(); track group.id) {
+    <div class="section-heading">
+      <span>{{ group.name }}</span
+      ><strong>{{ store.money(group.total) }}</strong>
+    </div>
+  }
+  <div class="section-heading">
+    <strong>Total neto</strong><strong>{{ store.money(netTotal()) }}</strong>
   </div>
 </section>
 @if (selected(); as sale) {
-  <section class="panel">
-    <div class="section-heading">
-      <h2>Detalle de venta</h2>
-      <button mat-button (click)="selectedId.set('')">Cerrar detalle</button>
-    </div>
-    <p class="receipt-number">{{ sale.receiptNumber }}</p>
-    <p>{{ eventName(sale.eventId) }} · {{ store.date(sale.soldAt) }} · {{ method(sale.id) }}</p>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Producto / presentación</th>
-            <th>Cantidad</th>
-            <th>Precio histórico</th>
-            <th>Descuento</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of items(); track item.id) {
-            <tr>
-              <td>
-                {{ item.productNameSnapshot }} · {{ item.variantNameSnapshot
-                }}<small
-                  >{{ item.brandNameSnapshot }} · {{ item.skuSnapshot }} ·
-                  {{ item.grindOptionSnapshot }}</small
-                >
-                @for (description of item.pieceDescriptions ?? []; track $index) {
-                  @if (description) {
-                    <small>Pieza {{ $index + 1 }}: {{ description }}</small>
-                  }
-                }
-                @if (item.inventoryStatus === 'pending') {
-                  <small>Inventario pendiente de conciliar</small>
-                }
-                @if (item.inventoryStatus === 'resolved') {
-                  <small>Inventario conciliado</small>
-                }
-              </td>
-              <td>{{ item.quantity }}</td>
-              <td>{{ store.money(item.unitPriceMinor) }}</td>
-              <td>{{ store.money(item.lineDiscountMinor) }}</td>
-              <td>{{ store.money(item.lineTotalMinor) }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <dl class="summary-list">
-      <dt>Subtotal</dt>
-      <dd>{{ store.money(sale.subtotalMinor) }}</dd>
-      <dt>Descuento</dt>
-      <dd>{{ store.money(sale.discountMinor) }}</dd>
-      <dt>Total cobrado</dt>
-      <dd>{{ store.money(sale.totalMinor) }}</dd>
-      <dt>Cambio</dt>
-      <dd>{{ store.money(sale.changeMinor) }}</dd>
-    </dl>
-    @if (payment()?.evidence; as photo) {
-      <details class="payment-photo">
-        <summary>Ver foto de referencia del pago</summary>
-        <img
-          [src]="photo.dataUrl"
-          alt="Foto de referencia de la transferencia"
-          style="display: block; max-width: 100%; max-height: 80vh; object-fit: contain"
-        />
-      </details>
-    }
-    @if (payment()?.reference) {
-      <p>Referencia: {{ payment()?.reference }}</p>
-    }
-    @if (sale.notes) {
-      <p>{{ sale.notes }}</p>
-    }
-    @if (sale.status === 'completed' && canVoid()) {
-      <h3>Anular venta</h3>
-      <form [formGroup]="form" (ngSubmit)="voidSale()" class="inline-form">
-        <mat-form-field class="grow"
-          ><mat-label>Motivo de anulación</mat-label
-          ><input matInput formControlName="reason" maxlength="200" /></mat-form-field
-        ><mat-checkbox formControlName="refunded">Dinero ya reembolsado</mat-checkbox
-        ><button mat-stroked-button [disabled]="store.busy() || form.invalid">
-          Confirmar anulación
+  <div class="detail-backdrop" (keydown.escape)="closeDetail()">
+    <section
+      class="panel detail-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Detalle de venta"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+    >
+      <div class="section-heading">
+        <h2>Detalle de venta</h2>
+        <button mat-button [disabled]="photoBusy() || store.busy()" (click)="closeDetail()">
+          Cerrar detalle
         </button>
-      </form>
-    }
-    @if (sale.status === 'voided') {
-      <div class="alert warning">
-        Anulada: {{ sale.voidReason }} · Reembolso
-        {{ sale.refundStatus === 'completed' ? 'realizado' : 'pendiente' }}
-        @if (sale.refundStatus === 'pending' && canVoid()) {
-          <button mat-button (click)="refund()" [disabled]="store.busy()">
-            Marcar reembolso realizado
-          </button>
-        }
       </div>
-    }
-    @if (!canVoid()) {
-      <p>El evento está cerrado. Su historial no admite nuevas anulaciones.</p>
-    }
-  </section>
+      <details>
+        <summary>Referencia del recibo</summary>
+        <p class="receipt-number">{{ sale.receiptNumber }}</p>
+      </details>
+      <p>
+        {{ eventName(sale.eventId) }} · {{ store.date(sale.paidAt ?? sale.soldAt) }} ·
+        {{ method(sale.id) }}
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto / presentación</th>
+              <th>Cantidad</th>
+              <th>Precio histórico</th>
+              <th>Descuento</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr>
+                <td>
+                  {{ item.productNameSnapshot }} · {{ item.variantNameSnapshot
+                  }}<small
+                    >{{ item.brandNameSnapshot }} · {{ item.skuSnapshot }} ·
+                    {{ item.grindOptionSnapshot }}</small
+                  >
+                  @for (description of item.pieceDescriptions ?? []; track $index) {
+                    @if (description) {
+                      <small>Pieza {{ $index + 1 }}: {{ description }}</small>
+                    }
+                  }
+                  @if (item.inventoryStatus === 'pending') {
+                    <small>Inventario pendiente de conciliar</small>
+                  }
+                  @if (item.inventoryStatus === 'resolved') {
+                    <small>Inventario conciliado</small>
+                  }
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ store.money(item.unitPriceMinor) }}</td>
+                <td>{{ store.money(item.lineDiscountMinor) }}</td>
+                <td>{{ store.money(item.lineTotalMinor) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <dl class="summary-list">
+        <dt>Subtotal</dt>
+        <dd>{{ store.money(sale.subtotalMinor) }}</dd>
+        <dt>Descuento</dt>
+        <dd>{{ store.money(sale.discountMinor) }}</dd>
+        <dt>Total cobrado</dt>
+        <dd>{{ store.money(sale.totalMinor) }}</dd>
+        <dt>Cambio</dt>
+        <dd>{{ store.money(sale.changeMinor) }}</dd>
+      </dl>
+      @if (payment()?.evidence; as photo) {
+        <details class="payment-photo">
+          <summary>Ver foto de referencia del pago</summary>
+          <img
+            [src]="photo.dataUrl"
+            alt="Foto de referencia de la transferencia"
+            style="display: block; max-width: 100%; max-height: 80vh; object-fit: contain"
+          />
+        </details>
+      }
+      @if (payment()?.reference) {
+        <p>Referencia: {{ payment()?.reference }}</p>
+      }
+      @if (sale.notes) {
+        <p>{{ sale.notes }}</p>
+      }
+      @if (sale.status === 'completed' && canVoid()) {
+        <h3>Anular venta</h3>
+        <app-evidence-picker
+          label="Foto de anulación"
+          [(photo)]="voidPhoto"
+          [(busy)]="photoBusy"
+          [disabled]="store.busy()"
+        />
+        <form [formGroup]="form" (ngSubmit)="voidSale()" class="inline-form">
+          <mat-form-field class="grow"
+            ><mat-label>Motivo de anulación</mat-label
+            ><input matInput formControlName="reason" maxlength="200" /></mat-form-field
+          ><mat-checkbox formControlName="refunded">Dinero ya reembolsado</mat-checkbox
+          ><button mat-stroked-button [disabled]="store.busy() || photoBusy() || form.invalid">
+            Confirmar anulación
+          </button>
+        </form>
+      }
+      @if (sale.voidEvidence; as photo) {
+        <details>
+          <summary>Ver foto de anulación</summary>
+          <img class="void-photo" [src]="photo.dataUrl" alt="Foto de anulación guardada" />
+        </details>
+      }
+      @if (sale.status === 'voided') {
+        <div class="alert warning">
+          Anulada: {{ sale.voidReason }} ·
+          {{ payment() ? (sale.refundStatus === 'completed' ? 'Reembolso realizado' : 'Reembolso pendiente') : 'Sin pago recibido' }}
+          @if (sale.refundStatus === 'pending' && canVoid()) {
+            <button mat-button (click)="refund()" [disabled]="store.busy()">
+              Marcar reembolso realizado
+            </button>
+          }
+        </div>
+      }
+      @if (!canVoid()) {
+        <p>El evento está cerrado. Su historial no admite nuevas anulaciones.</p>
+      }
+    </section>
+  </div>
 }

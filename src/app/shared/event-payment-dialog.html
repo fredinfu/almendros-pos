@@ -9,18 +9,38 @@
       [cdkTrapFocusAutoCapture]="true"
     >
       <h2 id="payment-dialog-title">
-        {{ request.eventId ? 'Métodos de pago del evento' : 'Tu primer evento' }}
+        {{
+          request.eventId === dailyId
+            ? 'Configurar venta diaria / ambulatoria'
+            : 'Métodos de pago del evento'
+        }}
       </h2>
-      @if (!request.eventId) {
+      <mat-form-field class="full-width"
+        ><mat-label>Nombre del negocio / perfil</mat-label
+        ><input matInput [formControl]="name" maxlength="150"
+      /></mat-form-field>
+      <div [formGroup]="contact">
         <mat-form-field class="full-width"
-          ><mat-label>Nombre del evento</mat-label
-          ><input matInput [formControl]="name" maxlength="150"
+          ><mat-label>WhatsApp del negocio</mat-label
+          ><input matInput formControlName="whatsapp" inputmode="tel" maxlength="25" /><mat-hint
+            >Incluye código de país; 8 dígitos se interpretan como Honduras.</mat-hint
+          ></mat-form-field
+        >
+        <mat-form-field class="full-width"
+          ><mat-label>Lugar de pickup (opcional)</mat-label
+          ><input matInput formControlName="pickupAddress" maxlength="500"
         /></mat-form-field>
-      }
+        <mat-form-field class="full-width"
+          ><mat-label>Indicaciones para el cliente (opcional)</mat-label
+          ><textarea matInput formControlName="instructions" maxlength="500"></textarea>
+        </mat-form-field>
+      </div>
       <p>Efectivo siempre disponible. Activa los métodos que aceptarás y completa sus datos.</p>
       @for (row of rows; track row.method) {
         <div [formGroup]="row.form">
-          <mat-checkbox formControlName="enabled">{{ row.name }}</mat-checkbox>
+          <mat-checkbox formControlName="enabled" (change)="enable(row.method)">{{
+            row.name
+          }}</mat-checkbox>
           @if (row.form.controls.enabled.value) {
             <mat-form-field class="full-width"
               ><mat-label>Cuenta o usuario {{ row.name }}</mat-label
@@ -28,7 +48,13 @@
             /></mat-form-field>
             <mat-form-field class="full-width"
               ><mat-label>Titular {{ row.name }}</mat-label
-              ><input matInput formControlName="holder" maxlength="150" required autocomplete="off"
+              ><input
+                matInput
+                formControlName="holder"
+                (input)="suggestHolder($any($event.target).value, row.method)"
+                maxlength="150"
+                required
+                autocomplete="off"
             /></mat-form-field>
           }
         </div>
@@ -49,7 +75,7 @@
           [disabled]="loading() || store.busy()"
           (click)="vault.request.set(undefined)"
         >
-          {{ request.eventId ? 'Cancelar' : 'Continuar para restaurar respaldo' }}
+          {{ request.eventId !== dailyId ? 'Cancelar' : 'Continuar para restaurar respaldo' }}
         </button>
       </div>
     </section>

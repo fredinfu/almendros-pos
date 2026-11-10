@@ -1,3 +1,7 @@
+## v1.2.0: pedidos y entregas sin cobro
+
+IndexedDB v4 añade orders (id,eventId,status,saleId). Respaldo formato 4; lectores 1–4. Order conserva cliente y líneas/precios como snapshots. Sale admite status pending exclusivamente ligado a un pedido entregado sin cobro; no tiene Payment y totalPaidMinor es 0. Una única transacción registra artículos y movimientos al entregar o cobrar primero. Un cobro posterior agrega Payment y cambia completed con paidAt sin alterar inventario. Sale.voidEvidence opcional conserva foto JPEG de anulación; cancelar enlaza también el pedido. Ver ORDERS.md.
+
 ## Métodos privados por evento — 2026-11-07
 
 Se retiran todas las cuentas precargadas. Configuración explícita por evento: efectivo siempre y BAC/Ficohsa/Atlántida/Kash opcionales con cuenta/usuario y titular obligatorios al habilitar. Primer ingreso sin eventos abre diálogo; permite continuar para restaurar respaldo. Se exige configurar antes de abrir evento o cobrar en él. Eventos existentes conservados. Bóveda separada IndexedDB AES-GCM con clave no exportable del dispositivo, IV aleatorio y eventId autenticado. No se incluye en JSON ni en Git ni se sincroniza: hay que reingresar cuentas en otro navegador. El cifrado en reposo no protege frente a alguien con acceso al navegador desbloqueado.

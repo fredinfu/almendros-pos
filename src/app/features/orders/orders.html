@@ -1,0 +1,264 @@
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">PEDIDOS Y ENTREGAS</div>
+    <h1>Pedidos</h1>
+    <p>Abierto → Empacado → Entregado. El pago se registra por separado.</p>
+  </div>
+  <a mat-flat-button routerLink="/pos">Nuevo pedido</a>
+</div>
+<section class="panel">
+  <div class="inline-form">
+    <mat-form-field
+      ><mat-label>Buscar cliente o teléfono</mat-label
+      ><input matInput [value]="search()" (input)="search.set($any($event.target).value)"
+    /></mat-form-field>
+    <mat-checkbox [checked]="allContexts()" (change)="allContexts.set($event.checked)"
+      >Todos los perfiles y eventos</mat-checkbox
+    >
+    <mat-checkbox [checked]="showAll()" (change)="showAll.set($event.checked)"
+      >Incluir terminados y cancelados</mat-checkbox
+    >
+  </div>
+  <strong>Por cobrar: {{ store.money(outstanding()) }}</strong>
+  <p>Incluye pedidos abiertos y entregados sin pagar; no forma parte de las ventas cobradas.</p>
+</section>
+<div class="order-board">
+  @for (column of columns; track column.id) {
+    @if ((column.id !== 'cancelled' || showAll()) && inColumn(column.id).length) {
+      <section class="order-column">
+        <h2>
+          {{ column.name }} <span class="badge">{{ inColumn(column.id).length }}</span>
+        </h2>
+        @for (order of inColumn(column.id); track order.id) {
+          <article class="panel order-card">
+            <div class="section-heading">
+              <h3>{{ order.customer.name }}</h3>
+              <span class="badge" [class.unpaid]="!paid(order)">{{
+                order.status === 'cancelled'
+                  ? 'Cancelado'
+                  : paid(order)
+                    ? 'Pagado'
+                    : 'Pendiente de pago'
+              }}</span>
+            </div>
+            <p>{{ contextName(order) }} · {{ store.date(order.createdAt) }}</p>
+            <p>
+              {{ order.customer.phone }} ·
+              {{ order.customer.fulfillment === 'pickup' ? 'Pickup' : 'Delivery' }}
+            </p>
+            @if (order.customer.address) {
+              <p>{{ order.customer.address }}</p>
+            }
+            @if (order.customer.notes) {
+              <p>{{ order.customer.notes }}</p>
+            }
+            <ul>
+              @for (line of order.lines; track $index) {
+                <li>
+                  {{ line.quantity }} × {{ line.productNameSnapshot }} ·
+                  {{ line.variantNameSnapshot }} {{ line.grindOption }}
+                  <strong>{{ store.money(line.quantity * line.unitPriceMinor) }}</strong>
+                  @for (piece of line.pieceDescriptions ?? []; track $index) {
+                    @if (piece) {
+                      <small>{{ piece }}</small>
+                    }
+                  }
+                </li>
+              }
+            </ul>
+            @if (order.discountMinor) {
+              <p>Descuento: {{ store.money(order.discountMinor) }}</p>
+            }
+            <h3>Total {{ store.money(order.totalMinor) }}</h3>
+            @if (order.cancelReason) {
+              <p>Motivo: {{ order.cancelReason }}</p>
+            }
+            @if (order.cancelEvidence; as photo) {
+              <details>
+                <summary>Foto de cancelación</summary>
+                <img class="evidence" [src]="photo.dataUrl" alt="Foto de cancelación del pedido" />
+              </details>
+            }
+            <div class="actions">
+              @if (order.status !== 'cancelled' && !closed(order)) {
+                @if (order.status === 'open') {
+                  <button mat-stroked-button [disabled]="store.busy()" (click)="pack(order)">
+                    Marcar empacado
+                  </button>
+                }
+                @if (order.status === 'packed') {
+                  <button mat-stroked-button [disabled]="store.busy()" (click)="deliver(order)">
+                    Marcar entregado
+                  </button>
+                }
+                @if (!paid(order)) {
+                  <button
+                    mat-flat-button
+                    [disabled]="store.busy() || preparing()"
+                    (click)="show(order, 'pay')"
+                  >
+                    Cobrar pedido
+                  </button>
+                }
+                <button mat-button [disabled]="store.busy()" (click)="show(order, 'edit')">
+                  Editar cliente
+                </button>
+                <button mat-button [disabled]="store.busy()" (click)="show(order, 'cancel')">
+                  Cancelar pedido
+                </button>
+              }
+              <button
+                mat-stroked-button
+                [disabled]="store.busy() || preparing()"
+                (click)="show(order, 'message')"
+              >
+                Preparar WhatsApp
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty">Sin pedidos</p>
+        }
+      </section>
+    }
+  }
+</div>
+@if (!rows().length) {
+  <p class="panel empty">No hay pedidos para este filtro.</p>
+}
+@if (selected(); as order) {
+  <div class="backdrop" (keydown.escape)="close()">
+    <section
+      class="panel dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Gestionar pedido"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+    >
+      <div class="section-heading">
+        <h2>{{ order.customer.name }}</h2>
+        <button mat-button [disabled]="store.busy() || photoBusy()" (click)="close()">
+          Cerrar
+        </button>
+      </div>
+      @if (store.error()) {
+        <p class="alert error" role="alert">{{ store.error() }}</p>
+      }
+      @if (action() === 'message') {
+        <h3>Mensaje para WhatsApp</h3>
+        <p>
+          Revisa el contenido. Al abrir WhatsApp eliges enviar; la aplicación no envía mensajes
+          automáticamente.
+        </p>
+        <pre class="message">{{ message() }}</pre>
+        <div class="actions">
+          <a mat-flat-button [href]="url()" target="_blank" rel="noopener noreferrer"
+            >Abrir WhatsApp del cliente</a
+          ><button mat-stroked-button (click)="copy(message())">Copiar mensaje</button>
+        </div>
+      }
+      @if (action() === 'pay') {
+        <h3>Cobrar {{ store.money(order.totalMinor) }}</h3>
+        <form [formGroup]="payment" (ngSubmit)="pay()">
+          <mat-form-field class="full-width"
+            ><mat-label>Método de pago del pedido</mat-label
+            ><mat-select formControlName="method" (selectionChange)="evidence.set(undefined)"
+              ><mat-option value="cash">Efectivo</mat-option>
+              @for (account of profile()?.accounts ?? []; track account.method) {
+                <mat-option [value]="account.method">{{ methodName(account.method) }}</mat-option>
+              }
+            </mat-select></mat-form-field
+          >
+          @if (payment.controls.method.value === 'cash') {
+            <mat-form-field class="full-width"
+              ><mat-label>Efectivo recibido L</mat-label
+              ><input matInput formControlName="received" inputmode="decimal" /><mat-hint
+                >Vacío = pago exacto</mat-hint
+              ></mat-form-field
+            >
+          } @else {
+            @for (account of profile()?.accounts ?? []; track account.method) {
+              @if (account.method === payment.controls.method.value) {
+                <p>{{ account.holder }}</p>
+                <p class="account-code">{{ account.code }}</p>
+                <button type="button" mat-stroked-button (click)="copy(account.code)">
+                  Copiar cuenta
+                </button>
+              }
+            }
+            <p>Confirma el pago por tu cuenta; registro manual.</p>
+            <mat-form-field class="full-width"
+              ><mat-label>Referencia del pago</mat-label
+              ><input matInput formControlName="reference" maxlength="450"
+            /></mat-form-field>
+            <app-evidence-picker
+              [(photo)]="evidence"
+              [(busy)]="photoBusy"
+              [disabled]="store.busy()"
+            />
+          }
+          <button mat-flat-button [disabled]="store.busy() || photoBusy()">
+            Confirmar pago del pedido
+          </button>
+        </form>
+      }
+      @if (action() === 'cancel') {
+        <h3>Cancelar pedido</h3>
+        <p>
+          Si hubo salida de productos, esta acción registra su devolución. Conserva el historial.
+        </p>
+        <app-evidence-picker
+          label="Foto de anulación"
+          [(photo)]="evidence"
+          [(busy)]="photoBusy"
+          [disabled]="store.busy()"
+        />
+        <form [formGroup]="cancellation" (ngSubmit)="cancel()">
+          <mat-form-field class="full-width"
+            ><mat-label>Motivo de cancelación</mat-label
+            ><textarea matInput formControlName="reason" maxlength="200"></textarea>
+          </mat-form-field>
+          @if (paid(order)) {
+            <mat-checkbox formControlName="refunded">Dinero ya reembolsado</mat-checkbox>
+          }
+          <button
+            mat-stroked-button
+            [disabled]="store.busy() || photoBusy() || cancellation.invalid"
+          >
+            Confirmar cancelación
+          </button>
+        </form>
+      }
+      @if (action() === 'edit') {
+        <h3>Datos del cliente</h3>
+        <form [formGroup]="customer" (ngSubmit)="saveCustomer()">
+          <mat-form-field class="full-width"
+            ><mat-label>Nombre del cliente</mat-label
+            ><input matInput formControlName="name" maxlength="200"
+          /></mat-form-field>
+          <mat-form-field class="full-width"
+            ><mat-label>WhatsApp del cliente</mat-label
+            ><input matInput formControlName="phone" inputmode="tel" maxlength="25"
+          /></mat-form-field>
+          <mat-form-field class="full-width"
+            ><mat-label>Tipo de entrega</mat-label
+            ><mat-select formControlName="fulfillment"
+              ><mat-option value="pickup">Pickup</mat-option
+              ><mat-option value="delivery">Delivery</mat-option></mat-select
+            ></mat-form-field
+          >
+          <mat-form-field class="full-width"
+            ><mat-label>Dirección / punto de entrega</mat-label
+            ><textarea matInput formControlName="address" maxlength="500"></textarea>
+          </mat-form-field>
+          <mat-form-field class="full-width"
+            ><mat-label>Indicaciones</mat-label
+            ><textarea matInput formControlName="notes" maxlength="2000"></textarea>
+          </mat-form-field>
+          <button mat-flat-button [disabled]="store.busy()">Guardar cliente</button>
+        </form>
+      }
+    </section>
+  </div>
+}

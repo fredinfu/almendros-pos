@@ -1,3 +1,7 @@
+## Reglas añadidas v1.2.0
+
+Leer docs/ORDERS.md para pedidos. IndexedDB v4 añade orders; no cambiar versiones publicadas. Backup formato 4 lee 1–4. Venta diaria = eventId ausente, perfil cifrado daily. Order abierto/empacado sin pago no reserva; entregar/cobrar primero usa recordSale transaccional, entrega impaga usa Sale.pending sin Payment. collectPendingSale registra pago sin stock. No incluir pending en ingresos ni caja. Cancelación conserva motivo/foto e historial, revierte stock y enlaza pedido. Cierre exige pedidos resueltos. Perfiles de comunicación y cuentas permanecen locales cifrados, fuera del JSON. Nunca enviar WhatsApp automáticamente; solo preparar vista previa/enlace.
+
 # Almendros POS — instrucciones de mantenimiento
 
 Leer docs/PROGRESS.md, DATA_MODEL.md e INVENTORY_RULES.md antes de cambiar operaciones. El prompt original docs/PRD.md es privado (solo local, ignorado por Git); las reglas públicas están en estos documentos.

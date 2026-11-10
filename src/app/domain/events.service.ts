@@ -122,6 +122,16 @@ export class EventsService {
   ): Promise<void> {
     return this.repository.transact((state) => {
       const event = mustFind(state.events, eventId);
+      requireRule(
+        !state.orders.some(
+          (o) =>
+            o.eventId === eventId &&
+            o.status !== 'cancelled' &&
+            (o.status !== 'delivered' ||
+              !state.sales.some((s) => s.id === o.saleId && s.status === 'completed')),
+        ),
+        'Hay pedidos sin entregar o sin cobrar. Resuélvelos antes del cierre.',
+      );
       requireRule(event.status === 'open', 'El evento debe estar abierto.');
       requireRule(
         !state.sales.some((s) => s.eventId === eventId && s.refundStatus === 'pending'),

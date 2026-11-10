@@ -1,3 +1,4 @@
+import { OrdersService } from '../domain/orders.service';
 import { Injectable, InjectionToken, inject, signal, computed, DestroyRef } from '@angular/core';
 import { DataRepository } from '../domain/repository';
 import {
@@ -46,6 +47,7 @@ export class AppStore {
   readonly inventory = new InventoryService(this.repository);
   readonly events = new EventsService(this.repository);
   readonly sales = new SalesService(this.repository);
+  readonly orders = new OrdersService(this.repository);
   readonly backups = new BackupService(this.repository);
   readonly variants = computed(() =>
     this.data()

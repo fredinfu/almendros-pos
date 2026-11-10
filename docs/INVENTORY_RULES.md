@@ -1,3 +1,7 @@
+## Pedidos v1.2.0
+
+Abierto/empacado sin pago no reserva stock. Entregar o cobrar primero registra una única salida transaccional y las mismas obligaciones de stock desconocido. Entrega sin pago crea registro interno pending sin Payment, fuera de ingresos/caja; el pago posterior no genera movimientos. Cancelar una salida requiere devolución física y revierte el origen. Un evento con pedidos sin entregar o cobrar no cierra. Concurrencia, idempotencia, snapshots y conciliación se mantienen.
+
 # Reglas de inventario y caja
 
 ## Refinamiento operativo v1.1 — 2026-11-07
