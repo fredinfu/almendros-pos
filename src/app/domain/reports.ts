@@ -8,7 +8,7 @@ export function eventReport(state: State, eventId: string) {
   const saleIds = new Set(sales.map((s) => s.id));
   const items = state.items.filter((i) => saleIds.has(i.saleId));
   const expenses = state.expenses.filter((e) => e.eventId === eventId && !e.voidedAt);
-  const movements = state.movements.filter((m) => m.eventId === eventId);
+  const movements = state.movements.filter((m) => (m.eventId ?? '') === eventId);
   const gross = sales.reduce((n, s) => n + s.subtotalMinor, 0);
   const discounts = sales.reduce((n, s) => n + s.discountMinor, 0);
   const net = gross - discounts;
@@ -33,14 +33,14 @@ export function eventReport(state: State, eventId: string) {
       .reduce((n, p) => n + p.amountMinor, 0),
   }));
   const pendingRefunds = state.sales
-    .filter((s) => s.eventId === eventId && s.refundStatus === 'pending')
+    .filter((s) => (s.eventId ?? '') === eventId && s.refundStatus === 'pending')
     .reduce((n, s) => n + s.totalMinor, 0);
   const pendingCash = state.payments
     .filter(
       (p) =>
         p.method === 'cash' &&
         state.sales.some(
-          (s) => s.id === p.saleId && s.eventId === eventId && s.refundStatus === 'pending',
+          (s) => s.id === p.saleId && (s.eventId ?? '') === eventId && s.refundStatus === 'pending',
         ),
     )
     .reduce((n, p) => n + p.amountMinor, 0);

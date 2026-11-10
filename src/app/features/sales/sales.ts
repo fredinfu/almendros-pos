@@ -1,5 +1,6 @@
 import { EvidencePicker } from '../../shared/evidence-picker';
 import { PaymentEvidence } from '../../domain/models';
+import { toCsv } from '../../domain/backups';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AppStore } from '../../core/app.store';
@@ -39,6 +40,9 @@ export class SalesPage {
     })),
   );
   readonly netTotal = computed(() => this.totals().reduce((n, g) => n + g.total, 0));
+  exportSales(): void {
+    this.store.download('almendros-ventas.csv', toCsv(this.scope()), 'text/csv;charset=utf-8');
+  }
   saleItems(id: string) {
     return this.store.data().items.filter((i) => i.saleId === id);
   }
@@ -81,7 +85,7 @@ export class SalesPage {
     return this.store.data().events.find((e) => e.id === id)?.name ?? 'Venta diaria / ambulatoria';
   }
   method(id: string): string {
-    const payment = this.store.data().payments.find(p => p.saleId === id);
+    const payment = this.store.data().payments.find((p) => p.saleId === id);
     return payment ? this.paymentLabels[payment.method] : 'Sin pago recibido';
   }
   canVoid(): boolean {

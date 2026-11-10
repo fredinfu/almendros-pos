@@ -4,9 +4,7 @@
     <h1>Ventas</h1>
     <p>Las anulaciones conservan los detalles y revierten el inventario.</p>
   </div>
-  <button mat-stroked-button (click)="store.exportCsv('sales', allEvents() ? '' : store.eventId())">
-    Exportar ventas CSV
-  </button>
+  <button mat-stroked-button (click)="exportSales()">Exportar ventas CSV</button>
 </div>
 <section class="panel">
   <div class="inline-form">
@@ -208,7 +206,13 @@
       @if (sale.status === 'voided') {
         <div class="alert warning">
           Anulada: {{ sale.voidReason }} ·
-          {{ payment() ? (sale.refundStatus === 'completed' ? 'Reembolso realizado' : 'Reembolso pendiente') : 'Sin pago recibido' }}
+          {{
+            payment()
+              ? sale.refundStatus === 'completed'
+                ? 'Reembolso realizado'
+                : 'Reembolso pendiente'
+              : 'Sin pago recibido'
+          }}
           @if (sale.refundStatus === 'pending' && canVoid()) {
             <button mat-button (click)="refund()" [disabled]="store.busy()">
               Marcar reembolso realizado

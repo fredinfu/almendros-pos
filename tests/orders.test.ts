@@ -137,6 +137,20 @@ it('cobrar antes de entregar descuenta una vez y conserva precio del pedido', as
   expect(s.movements.filter((m) => m.type === 'sale')).toHaveLength(1);
   validateState(s);
 });
+it('venta diaria conserva efectivo pendiente de reembolso aunque la venta esté anulada', async () => {
+  const order = await orders.create(input());
+  await orders.pay(order.id, { method: 'cash' });
+  const sales = new SalesService(repo);
+  await sales.void(order.id, 'Devolución pendiente', false);
+  let report = eventReport(await repo.read(), '');
+  expect(report.net).toBe(0);
+  expect(report.pendingRefunds).toBe(6500);
+  expect(report.expectedCash).toBe(6500);
+  await sales.markRefunded(order.id);
+  report = eventReport(await repo.read(), '');
+  expect(report.pendingRefunds).toBe(0);
+  expect(report.expectedCash).toBe(0);
+});
 it('stock insuficiente revierte entrega y pago íntegros; no cambia estado del pedido', async () => {
   await stockUp(1);
   const o = await orders.create(input());
