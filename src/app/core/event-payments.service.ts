@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import Dexie, { Table } from 'dexie';
+import { serverSession } from './server-connection';
 
 import {
   BusinessProfile,
@@ -18,7 +19,7 @@ interface Sealed {
 export class EventPaymentsService {
   readonly request = signal<{ eventId: string; openAfter?: boolean } | undefined>(undefined);
   readonly revision = signal(0);
-  private readonly db = new Dexie('almendros-payment-vault');
+  private readonly db = new Dexie(serverSession() ? `almendros-vault-${serverSession()!.businessId}` : 'almendros-payment-vault');
   private readonly records: Table<Sealed, string>;
   private readonly keys: Table<{ id: string; key: CryptoKey }, string>;
   constructor() {

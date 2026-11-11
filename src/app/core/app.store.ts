@@ -20,10 +20,13 @@ import { SalesService } from '../domain/sales.service';
 import { BackupService, csvRows, toCsv } from '../domain/backups';
 import { eventReport } from '../domain/reports';
 import { seedDatabase } from '../infrastructure/seed/seed';
+import { api, command, remoteService, serverMode, serverSession } from './server-connection';
 
 export const DATA_REPOSITORY = new InjectionToken<DataRepository>('DATA_REPOSITORY');
 @Injectable({ providedIn: 'root' })
 export class AppStore {
+  readonly serverMode = serverMode();
+  readonly session = serverSession();
   private readonly repository = inject(DATA_REPOSITORY);
   private readonly destroyRef = inject(DestroyRef);
   readonly data = signal<State>(emptyState());
@@ -43,12 +46,16 @@ export class AppStore {
       Date.now() - Date.parse(settings.lastBackupAt) >= settings.backupReminderDays * 86400000
     );
   });
-  readonly catalog = new CatalogService(this.repository);
-  readonly inventory = new InventoryService(this.repository);
-  readonly events = new EventsService(this.repository);
-  readonly sales = new SalesService(this.repository);
-  readonly orders = new OrdersService(this.repository);
-  readonly backups = new BackupService(this.repository);
+  readonly catalog = this.serverMode ? remoteService<CatalogService>('catalog') : new CatalogService(this.repository);
+  readonly inventory = this.serverMode ? remoteService<InventoryService>('inventory') : new InventoryService(this.repository);
+  readonly events = this.serverMode ? remoteService<EventsService>('events') : new EventsService(this.repository);
+  readonly sales = this.serverMode ? remoteService<SalesService>('sales') : new SalesService(this.repository);
+  readonly orders = this.serverMode ? remoteService<OrdersService>('orders') : new OrdersService(this.repository);
+  readonly backups = this.serverMode ? {
+    preview: (json:string) => new BackupService(this.repository).preview(json),
+    export: () => api<Awaited<ReturnType<BackupService['export']>>>('/backups'),
+    restore: (backup:Parameters<BackupService['restore']>[0]) => command<void>('imports','restore',[backup]),
+  } : new BackupService(this.repository);
   readonly variants = computed(() =>
     this.data()
       .variants.map((variant) => {
@@ -76,7 +83,7 @@ export class AppStore {
   }
   async initialize(): Promise<void> {
     try {
-      await seedDatabase(this.repository);
+      if (!this.serverMode) await seedDatabase(this.repository);
       this.data.set(await this.repository.read());
       const selected = localStorage.getItem('almendros.event') ?? '';
       this.eventId.set(this.data().events.some((e) => e.id === selected) ? selected : '');
@@ -163,9 +170,8 @@ export class AppStore {
         JSON.stringify(backup, null, 2),
         'application/json',
       );
-      await this.repository.transact((state) => {
-        state.settings[0].lastBackupAt = now();
-      });
+      if (this.serverMode) await this.saveSettings({...this.data().settings[0],lastBackupAt:now()});
+      else await this.repository.transact((state) => { state.settings[0].lastBackupAt = now(); });
     }, 'Respaldo generado. Compruebe que el archivo se haya guardado.');
   }
   exportCsv(kind: string, eventId = this.eventId()): void {
@@ -177,9 +183,15 @@ export class AppStore {
   }
   async saveSettings(input: Settings): Promise<void> {
     const settings = settingsSchema.parse(input);
+    if (this.serverMode) return command<void>('settings','save',[settings]);
     await this.repository.transact((state) => {
       Object.assign(state.settings[0], settings);
     });
   }
   newId = newId;
+  async logout(): Promise<void> {
+    await api('/auth/logout',{});
+    delete window.__ALMENDROS_SESSION__;
+    location.reload();
+  }
 }

@@ -22,8 +22,11 @@
     </select>
   </div>
   <span class="connection" [class.offline]="!store.online()">{{
-    store.ready() ? 'Datos locales · Sin sincronización' : 'Abriendo almacenamiento…'
+    store.ready() ? (store.serverMode ? 'Servidor · Requiere conexión' : 'Datos locales · Sin sincronización') : 'Abriendo almacenamiento…'
   }}</span>
+  @if (store.serverMode) {
+    <button mat-button class="logout-button" (click)="store.logout()">Cerrar sesión</button>
+  }
 </header>
 <div class="app-layout" [class.menu-open]="menu()">
   <aside>
@@ -39,7 +42,11 @@
     <div class="sidebar-footer">
       Almendros Coffee Co.<br />AFTER Coffee
       <hr />
-      Datos en este dispositivo<br /><small>Sin sincronización entre equipos</small>
+      @if (store.serverMode) {
+        Datos en servidor<br /><small>Actualización cada 15 segundos</small>
+      } @else {
+        Datos en este dispositivo<br /><small>Sin sincronización entre equipos</small>
+      }
     </div>
   </aside>
   <main
@@ -48,6 +55,9 @@
     tabindex="-1"
     [class.compact-tables]="store.data().settings[0]?.compactDisplay"
   >
+    @if (store.session?.role === 'demo') {
+      <div class="demo-notice">Demostración temporal. Usa solo datos ficticios; este espacio está separado de las ventas reales.</div>
+    }
     @if (offline.updateAvailable()) {
       <div class="alert">
         Nueva versión disponible. Termina tu venta antes de actualizar.<button
@@ -72,7 +82,7 @@
       <router-outlet />
     } @else {
       <h1>Almendros POS</h1>
-      <p>Preparando el almacenamiento local…</p>
+      <p>{{ store.serverMode ? 'Conectando con el servidor…' : 'Preparando el almacenamiento local…' }}</p>
     }
     <footer>ALMENDROS POS <span>Inventario claro. Ventas al día.</span></footer>
   </main>

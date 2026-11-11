@@ -8,7 +8,7 @@ Leer docs/PROGRESS.md, DATA_MODEL.md e INVENTORY_RULES.md antes de cambiar opera
 
 ## Arquitectura y convenciones
 
-Angular standalone + strict TypeScript + Signals + Reactive Forms + Material + SCSS. UI y docs funcionales en español; código en inglés. Separar componentes, templates y estilos. Sin Dexie en componentes: usar AppStore y servicios de dominio mediante DataRepository. No introducir backend ni módulos futuros.
+Angular standalone + strict TypeScript + Signals + Reactive Forms + Material + SCSS. UI y docs funcionales en español; código en inglés. Separar componentes, templates y estilos. Sin Dexie en componentes: usar AppStore y servicios de dominio mediante DataRepository. Backend MySQL autorizado como piloto separado: ver docs/SERVER_MODE.md. Preservar el modo local predeterminado; no migrar datos automáticamente ni enviar cuentas bancarias al servidor.
 
 UUID, ISO UTC, dinero HNL en centavos enteros. Preservar snapshots históricos. No borrar movimientos o ventas. Solo restauración confirmada reemplaza datos. No inferir precios, costos, unidades de paquetes ni recetas.
 

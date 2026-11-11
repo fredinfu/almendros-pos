@@ -1,8 +1,8 @@
 <div class="page-heading">
   <div>
-    <div class="eyebrow">ESTE DISPOSITIVO</div>
+    <div class="eyebrow">{{ store.serverMode ? 'SERVIDOR' : 'ESTE DISPOSITIVO' }}</div>
     <h1>Ajustes y respaldos</h1>
-    <p>Cada dispositivo tiene datos independientes. Los respaldos protegen tu operación.</p>
+    <p>{{ store.serverMode ? 'Ventas y pedidos compartidos en el servidor. Cuentas bancarias configuradas solo en este navegador.' : 'Cada dispositivo tiene datos independientes. Los respaldos protegen tu operación.' }}</p>
   </div>
 </div>
 <div class="two-columns">
@@ -34,6 +34,10 @@
   </section>
   <section class="panel">
     <h2>Almacenamiento y conexión</h2>
+    @if (store.serverMode) {
+      <p>Las operaciones se confirman en el servidor y requieren conexión. Esta versión todavía no sincroniza ventas realizadas sin internet.</p>
+      <p>El respaldo JSON incluye las operaciones y sus fotos. Las cuentas bancarias y el perfil de comunicación siguen siendo locales y no se incluyen.</p>
+    } @else {
     <p>{{ storage() }}</p>
     <p>
       {{
@@ -57,6 +61,7 @@
       Borrar datos del navegador, perder el dispositivo o ciertas políticas del sistema pueden
       eliminar la información. La persistencia no garantiza conservación.
     </p>
+    }
   </section>
 </div>
 <section class="panel">
@@ -73,11 +78,16 @@
     Guarda el archivo fuera del dispositivo y comprueba que se descargó correctamente.
   </p>
 </section>
+@if (store.session?.role !== 'demo') {
 <section class="panel">
-  <h2>Restaurar respaldo</h2>
+  <h2>{{ store.serverMode ? 'Importar respaldo inicial' : 'Restaurar respaldo' }}</h2>
   <div class="alert warning">
+    @if (store.serverMode) {
+      Solo se permite importar en un negocio sin ventas, movimientos, eventos ni pedidos. No fusiona dispositivos ni reemplaza una operación existente. Máximo 10 MB desde esta pantalla.
+    } @else {
     La restauración reemplaza todos los datos locales. Descarga antes un respaldo de los datos
     actuales.
+    }
   </div>
   <label class="file-label"
     >Seleccionar archivo JSON<input
@@ -108,6 +118,20 @@
     </div>
   }
 </section>
+}
+@if (store.serverMode && store.session?.role === 'owner') {
+  <section class="panel">
+    <h2>Demo temporal</h2>
+    <p>Crea un espacio independiente con catálogo de ejemplo, sin copiar tus ventas, clientes ni cuentas. El código permite un solo ingreso y vence a los 30 minutos.</p>
+    <button mat-flat-button (click)="createDemo()" [disabled]="store.busy()">Crear código de demo</button>
+    @if (demo(); as invitation) {
+      <p>Código: <strong>{{ invitation.code }}</strong></p>
+      <p>Vence: {{ store.date(dateFromMilliseconds(invitation.expiresAt)) }}</p>
+      <button mat-stroked-button (click)="revokeDemo()" [disabled]="store.busy()">Revocar acceso</button>
+    }
+  </section>
+}
+@if (!store.serverMode) {
 <section class="panel">
   <h2>Instalar en iPad</h2>
   <ol>
@@ -121,3 +145,4 @@
     habilitar la PWA.
   </p>
 </section>
+}

@@ -1,3 +1,7 @@
+# Piloto de servidor MySQL/MariaDB — 2026-11-10
+
+Modo servidor optativo mediante configuración de runtime, acceso propietario/demo, repositorio API, comandos idempotentes y bóveda bancaria local por negocio. Integración aislada del modo local publicado. Ver SERVER_MODE.md. Validado: 72 pruebas existentes, lint/build; backend con 11 pruebas contra MariaDB real, incluyendo concurrencia y evidencias en respaldo; navegación de propietario y demo móvil emulada. Despliegue Hostinger y migración de datos reales pendientes.
+
 # v1.2.0 — Venta diaria, pedidos y tarjetas de ventas — 2026-11-10
 
 Venta diaria independiente de eventos; perfil de comunicación/cuentas cifrado local. Primera instalación propone perfil diario, WhatsApp público precargado, titular sugerido editable. Pedidos con cliente/teléfono/pickup/delivery, estados abiertos/empacados/entregados y pago separado. Entrega sin pago autorizada: stock sale al entregar o cobrar por primera vez; cobro posterior sin duplicación. Precios de pedido conservados. WhatsApp con vista previa y enlace, nunca envío automático. Vista Ventas en tarjetas, detalle modal, totales netos por evento/perfil; motivo y foto opcional en anulación.

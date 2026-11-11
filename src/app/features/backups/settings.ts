@@ -4,6 +4,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { AppStore } from '../../core/app.store';
 import { UI_IMPORTS } from '../../shared/ui';
 import { Backup } from '../../domain/backups';
+import { api } from '../../core/server-connection';
 @Component({
   selector: 'app-settings',
   imports: UI_IMPORTS,
@@ -11,6 +12,15 @@ import { Backup } from '../../domain/backups';
   styleUrl: './settings.scss',
 })
 export class SettingsPage implements OnInit {
+  dateFromMilliseconds(value:number):string {return new Date(value).toISOString();}
+  readonly demo = signal<{businessId:string;code:string;expiresAt:number}|null>(null);
+  async createDemo():Promise<void> {
+    await this.store.run(async()=>{this.demo.set(await api('/admin/demos',{minutes:30}));},'Demo creada por 30 minutos. El código es de un solo uso.');
+  }
+  async revokeDemo():Promise<void> {
+    const current=this.demo();if(!current || !window.confirm('¿Cerrar el acceso de esta demo ahora?'))return;
+    await this.store.run(async()=>{await api(`/admin/demos/${current.businessId}`,undefined,'DELETE');this.demo.set(null);},'Demo revocada.');
+  }
   readonly store = inject(AppStore);
   private readonly fb = inject(FormBuilder);
   readonly preview = signal<Backup | null>(null);
@@ -29,7 +39,7 @@ export class SettingsPage implements OnInit {
     ],
   });
   async ngOnInit(): Promise<void> {
-    await this.inspectStorage();
+    if (!this.store.serverMode) await this.inspectStorage();
   }
   async inspectStorage(): Promise<void> {
     try {
@@ -67,7 +77,8 @@ export class SettingsPage implements OnInit {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     await this.store.run(async () => {
-      if (file.size > 200 * 1024 * 1024) throw new Error('El respaldo excede 200 MB.');
+      const limit=this.store.serverMode ? 10 : 200;
+      if (file.size > limit * 1024 * 1024) throw new Error(`El respaldo excede ${limit} MB. No se importó ningún dato. Los archivos mayores requieren preparar una importación por separado.`);
       const backup = this.store.backups.preview(await file.text());
       this.preview.set(backup);
       this.fileName.set(file.name);
@@ -78,13 +89,13 @@ export class SettingsPage implements OnInit {
     if (!backup || this.confirmation.value !== 'REEMPLAZAR') return;
     if (
       !window.confirm(
-        'Se reemplazarán TODOS los datos de este dispositivo con el archivo seleccionado. ¿Continuar?',
+        this.store.serverMode ? 'Se importará el respaldo al negocio del servidor si todavía no tiene operaciones. ¿Continuar?' : 'Se reemplazarán TODOS los datos de este dispositivo con el archivo seleccionado. ¿Continuar?',
       )
     )
       return;
     const ok = await this.store.run(
       () => this.store.backups.restore(backup),
-      'Respaldo restaurado. Los datos anteriores se reemplazaron.',
+      this.store.serverMode ? 'Respaldo inicial importado al servidor.' : 'Respaldo restaurado. Los datos anteriores se reemplazaron.',
     );
     if (ok) {
       this.store.eventId.set(this.store.data().events.find((e) => e.status === 'open')?.id ?? '');
